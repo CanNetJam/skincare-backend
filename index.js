@@ -1,15 +1,30 @@
-import express from "express";
-import productRoutes from "./routes/products.js";
-import cors from "cors";
-import path from "path";
-import mongodb from "mongodb";
-import mongoose from "mongoose";
-import dotenv from "dotenv"
+const express = require ("express");
+const cors= require ("cors");
+const path =require ("path");
+const mongoose =require ("mongoose");
+const dotenv =require ("dotenv");
 dotenv.config()
 
-//mongoose.connect("mongodb://0.0.0.0:27017", {
+const productRoute = require ('./routes/products');
+const cloudRoute = require ('./routes/cloudinary');
+
+//mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
 mongoose.connect(process.env.CONNECTIONSTRING , {
 })
+
+const app = express();
+app.use(cors());
+app.use(express.json()); // Add this line to parse incoming JSON data
+app.use("/product", productRoute)
+app.use("/", cloudRoute)
+
+app.get('/', async (req, res) => {
+  return res.json("Hello user");
+})
+
+app.listen(8000, () => {
+  console.log('Server running...');
+});
 
 /*
 //locate index.html to serve during first load
@@ -22,17 +37,3 @@ app.get('/', async (req, res) => {
   return res.render("index", {});
 });
 */
-const app = express();
-app.use(cors());
-app.use(express.json()); // Add this line to parse incoming JSON data
-app.use("/create-product", productRoutes)
-
-/*******************************************************************************************************/
-app.get('/', async (req, res) => {
-  return res.json("Hello user");
-})
-
-
-app.listen(8000, () => {
-  console.log('Server running...');
-});

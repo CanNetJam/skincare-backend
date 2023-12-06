@@ -1,20 +1,12 @@
-import mongoose from "mongoose"
+const mongoose = require ("mongoose");
 
 const productSchema = new mongoose.Schema({
     name: String,
     displayimage: String,
+    moreimage: [],
     maindesc: String,
-    ingredients: [{
-        ingname: {
-            type: String
-        },
-        ingimage: {
-            type: String
-        },
-        ingdesc: {
-            type: String
-        },
-    }],
+    category: String,
+    ingredients: [],
     morroutine: [{
         skintype: {
             type: String
@@ -40,11 +32,20 @@ const productSchema = new mongoose.Schema({
     stock: {
         type: Number,
     },
+    price: {
+        type: Number,
+    },
     productlinks: {
         shopee: { type: String },
         tiktok: { type: String },
         lazada: { type: String }
+    },
+    usage: {
+        type: String,
+    },
+    extra: {
+        type: String,
     }
 }, { timestamps: true })
 
-export default mongoose.model("product", productSchema)
+module.exports= mongoose.model("product", productSchema)
