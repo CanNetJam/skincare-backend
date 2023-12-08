@@ -7,22 +7,7 @@ const productSchema = new mongoose.Schema({
     maindesc: String,
     category: String,
     ingredients: [],
-    morroutine: [{
-        skintype: {
-            type: String
-        },
-        steps: {
-            type: Array
-        },
-    }],
-    nigroutine: [{
-        skintype: {
-            type: String
-        },
-        steps: {
-            type: Array
-        },
-    }],
+    routines: [],
     do: {
         type: Array,
     },

@@ -24,10 +24,12 @@ router.get("/get-product", async (req, res) => {
 
 router.post("/create-product", async (req, res) => {
     let newIngredients = JSON.parse(req.body.ingredients)
-    if (req.body.ingphoto[0]!==undefined) {
-        newIngredients = newIngredients.map((a, index)=> {
-            return {...a, photo: req.body.ingphoto[index]}
-        })
+    if (req.body?.ingphoto){
+        if (req.body.ingphoto[0]!==undefined) {
+            newIngredients = newIngredients.map((a, index)=> {
+                return {...a, photo: req.body.ingphoto[index]}
+            })
+        }
     }
     
     try {
@@ -48,9 +50,8 @@ router.post("/create-product", async (req, res) => {
             ingredients: newIngredients,
             do: JSON.parse(req.body.do),
             dont: JSON.parse(req.body.dont),
-            morroutine: JSON.parse(req.body.morroutine),
-            nigroutine: JSON.parse(req.body.nigroutine),
-            moreimage: req.body.moreimage
+            moreimage: req.body.moreimage,
+            routines: JSON.parse(req.body.routines)
         }
         const newProduct = await product.create(obj)
         res.status(200).json(newProduct)
