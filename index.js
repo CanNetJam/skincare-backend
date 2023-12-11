@@ -7,6 +7,7 @@ dotenv.config()
 
 const productRoute = require ('./routes/products');
 const cloudRoute = require ('./routes/cloudinary');
+const emailsRoute = require ('./routes/emails');
 
 //mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
 mongoose.connect(process.env.CONNECTIONSTRING , {
@@ -17,6 +18,7 @@ app.use(cors());
 app.use(express.json()); // Add this line to parse incoming JSON data
 app.use("/product", productRoute)
 app.use("/", cloudRoute)
+app.use("/emails", emailsRoute)
 
 app.get('/', async (req, res) => {
   return res.json("Hello user");
