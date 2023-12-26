@@ -15,7 +15,7 @@ router.get("/get-all-packages", async (req, res) => {
 router.get("/get-package", async (req, res) => {
     try {
         const searchPackage = await package.findById(req.query.packageid)
-        .populate({path:"items", select:["name", "displayimage", "maindesc"]})
+        .populate({path:"items", select:["name", "displayimage", "maindesc", "usage"]})
         res.status(200).json(searchPackage)
     }catch (err) {
         console.log(err)

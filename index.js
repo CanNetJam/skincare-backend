@@ -9,6 +9,8 @@ const productRoute = require ('./routes/products');
 const packageRoute = require ('./routes/package');
 const cloudRoute = require ('./routes/cloudinary');
 const emailsRoute = require ('./routes/emails');
+const accountsRoute = require ('./routes/accounts');
+const tokenRoute = require ('./routes/token');
 
 //mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
 mongoose.connect(process.env.CONNECTIONSTRING , {
@@ -21,6 +23,8 @@ app.use("/product", productRoute)
 app.use("/", cloudRoute)
 app.use("/emails", emailsRoute)
 app.use("/package", packageRoute)
+app.use("/accounts", accountsRoute)
+app.use("/token", tokenRoute)
 
 app.get('/', async (req, res) => {
   return res.json("Hello user");
