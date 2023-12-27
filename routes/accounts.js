@@ -15,7 +15,7 @@ router.post("/register", async (req, res) => {
     const newPassword = await bcrypt.hash(req.body.password, 10)
     try {
         let obj = {}
-        req.body.type !== "Staff" ?
+        req.body.type === "Customer" ?
         obj = {
             firstname: req.body.firstname,
             lastname: req.body.lastname,
