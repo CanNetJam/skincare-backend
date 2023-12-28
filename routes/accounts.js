@@ -128,11 +128,11 @@ router.post("/update-account/:id", async (req, res) =>{
     if (info.displayimage) {
       cloudinary.uploader.destroy(info.displayimage)
     }
-    res.send(true)
+    res.status(200).send(true)
   } else {
     // if they are not uploading a new photo
     await accounts.findByIdAndUpdate({ _id: new ObjectId(req.params.id) }, {$set: obj})
-    res.send(true)
+    res.status(200).send(true)
   }
 })
 
