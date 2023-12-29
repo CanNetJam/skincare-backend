@@ -95,8 +95,11 @@ router.post("/update-product", async (req, res) => {
             routines: JSON.parse(req.body.routines)
         }
         const info = await product.findByIdAndUpdate({ _id: new ObjectId(req.body._id) }, {$set: obj})
-        if (info.displayimage!==req.body.displayimage) {
-          cloudinary.uploader.destroy(info.displayimage)
+
+        if (req.body.displayimage!==undefined) {
+            if (info.displayimage!==req.body.displayimage) {
+                cloudinary.uploader.destroy(info.displayimage)
+            }
         }
         if (info.moreimage[0]!==undefined) {
             for(let i = 0; i<info.moreimage.length; i++){

@@ -33,7 +33,7 @@ router.post("/create-package", async (req, res) => {
             displayimage: req.body.displayimage,
             origprice: req.body.origprice,
             disprice: req.body?.disprice ? req.body.disprice : "",
-            productlinks: {
+            packagelinks: {
                 shopee: req.body.shopeelink,
                 tiktok: req.body.tiktoklink,
                 lazada: req.body.lazadalink,
