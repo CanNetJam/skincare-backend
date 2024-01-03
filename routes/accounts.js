@@ -62,7 +62,14 @@ router.post("/login", async (req, res) =>{
             _id: login._id,
             firstname: login.firstname,
             lastname: login.lastname,
-            type: login.type
+            type: login.type,
+            phone: login.phone,
+            department: login.department,
+            job: login.job,
+            createdAt: login.createdAt,
+            email: login.email,
+            displayimage: login.displayimage,
+            access: login.access
           }
         })
       }
