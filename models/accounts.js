@@ -9,6 +9,7 @@ const accountSchema = new mongoose.Schema({
     moreimage: [],
     department: String,
     job: String,
+    access: [],
     age: Number,
     region: String, 
     province: String,

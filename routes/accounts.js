@@ -33,6 +33,7 @@ router.post("/register", async (req, res) => {
           phone: req.body.phone,
           department: req.body.department,
           job: req.body.job,
+          access: JSON.parse(req.body.access),
         }
         const addAccount = await accounts.create(obj)
         if (addAccount) {
@@ -81,7 +82,8 @@ router.get("/user-data", auth, async (req, res) => {
     job: user.job,
     createdAt: user.createdAt,
     email: user.email,
-    displayimage: user.displayimage
+    displayimage: user.displayimage,
+    access: user.access
   })
 })
 
@@ -92,7 +94,7 @@ router.get("/all-accounts", auth, async (req, res) => {
       const startDate = req.query.startDate
       const endDate = req.query.endDate
       
-      let condition = {createdAt: {$gte: startDate, $lt: endDate}}
+      let condition = {createdAt: {$gte: startDate, $lte: endDate}}
       const allAccount = await accounts.find(condition).skip(page*accountsPerPage).limit(accountsPerPage)
       const allAccounts = await accounts.find(condition)
       
@@ -158,6 +160,32 @@ router.get("/get-profile", async (req, res) => {
   }catch (err) {
       console.log(err)
       res.status(500).json(err)
+  }
+})
+
+router.get("/check-password/:userid/:password", auth, async (req, res) => {
+  try {
+    const account = await accounts.findById(req.params.userid)
+    const pass = await bcrypt.compare(req.params.password, account.password)
+    res.status(200).send(pass)
+  } catch (err) {
+    console.log(err)
+    res.status(200).send(false)
+  }
+})
+
+router.post("/change-password/:userid/:password", async (req, res) => {
+  const newPassword = await bcrypt.hash(req.params.password, 10)
+  try {
+    const account = await accounts.findByIdAndUpdate({_id: req.params.userid}, {password: newPassword})
+    if (account) {
+      res.status(200).send(true)
+    }
+    if (!account) {
+      res.status(200).send(false)
+    }
+  } catch (err) {
+    res.status(200).send(false)
   }
 })
 
