@@ -124,7 +124,7 @@ router.get("/all-accounts", auth, async (req, res) => {
   }
 })
 
-router.post("/update-account/:id", async (req, res) =>{
+router.post("/update-account/:id", auth, async (req, res) =>{
   const obj = {
     firstname: req.body.firstname, 
     lastname: req.body.lastname,
@@ -193,6 +193,43 @@ router.post("/change-password/:userid/:password", async (req, res) => {
     }
   } catch (err) {
     res.status(200).send(false)
+  }
+})
+
+router.post("/update-account-info/:id", auth, async (req, res) => {
+  const user = await accounts.findOne({email: req.body.email})
+  if (user) {
+    if (user._id.toString()!==new ObjectId(req.params.id).toString()){
+        return res.status(200).send(false)
+    }
+  }
+  try {
+      let obj = {}
+      req.body.type === "Customer" ?
+      obj = {
+          firstname: req.body.firstname,
+          lastname: req.body.lastname,
+          type: req.body.type,
+          email: req.body.email,
+          password: newPassword,
+      }
+      :
+      obj = {
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        type: req.body.type,
+        email: req.body.email,
+        phone: req.body.phone,
+        department: req.body.department,
+        job: req.body.job,
+        access: JSON.parse(req.body.access),
+      }
+      const info = await accounts.findByIdAndUpdate({ _id: new ObjectId(req.params.id) }, {$set: obj})
+      if (info) {
+        res.status(200).json(true)
+      }
+  } catch (err) {
+      console.log(err)
   }
 })
 
