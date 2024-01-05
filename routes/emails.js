@@ -52,15 +52,27 @@ router.post("/send-policy-email", auth, async (req, res) => {
     try {
         const maillist = [
             req.body.useremail,
-            //'echua@kluedskincare.com',
+            'echua@kluedskincare.com',
         ]
-
+        let policyText = ""
+        if(req.body.policytitle.length>1){
+            for (let i=0; i<req.body.policytitle.length; i++) {
+                if (i<req.body.policytitle.length-1) {
+                    policyText = policyText + (req.body.policytitle[i]+", ")
+                } else if (i===req.body.policytitle.length-1) {
+                    policyText = policyText + req.body.policytitle[i]
+                }
+            } 
+        } else {
+            policyText = req.body.policytitle[0]
+        }
+        
         let transporter = nodemailer.createTransport({
             host: "smtp.hostinger.com", 
             port: 465, 
             secure: true, 
             auth: {
-              user: "kensara@kluedskincare.com", 
+              user: "trainingandpolicies@kluedskincare.com", 
               pass: process.env.EMAIL_PASS, 
             },
             tls : { rejectUnauthorized: false }
@@ -68,38 +80,43 @@ router.post("/send-policy-email", auth, async (req, res) => {
         
         // Define and send message inside transporter.sendEmail() and await info about send from promise:
         let info = await transporter.sendMail({
-            from: '<kensara@kluedskincare.com>',
+            from: '<trainingandpolicies@kluedskincare.com>',
             to: maillist,
-            cc: 'alnadu@kluedskincare.com',
-            subject: `${req.body.fullname+"'s "+req.body.policytitle} Email Confirmation`,
+            cc: 'mcanega@kluedskincare.com',
+            subject: `Do Not Reply - ${req.body.fullname+"'s "}Internal Policy Email Confirmation`,
             html: `
             <h4>Klued Internal Policy Email Confirmation</h4>
             <p>
                 Hi ${req.body.fullname},
                 <br/>
                 <br/>
-                This email is sent to you in order to confirm that you signed and agreed in the <b>${req.body.policytitle}</b> on <b>${req.body.date}</b>.
+                This email is sent to you in order to confirm that you signed, understood and agreed in the following:
+                <br/>
+                <br/>
+                <b>${policyText}</b>
+                <br/>
+                <br/>
+                on <b>${req.body.date}</b>.
+                <br/>
+                <br/>
+                <i>This is a system-generated email, please do not reply to this message.</i>
                 <br/>
                 <br/>
                 Regards,
                 <br/>
                 <br/>
-                <b>Emilio Chua</b>
+                <b>Klued Human Resource Department</b>
                 <br/>
-                <i>Managing Director</i>
-                <br/>
-                <br/>
-                📍Address: 2nd Floor WANJ Bldg.<br/>
-                Don Placido Campos Ave. Brgy. San Jose <br/>
-                Dasmarinas, Cavite 4114 <br/>
-                📞 Mobile:+639776432657 <br/>
-                📧 echua@kluedskincare.com <br/>
-                💻Website: https://kluedskincare.com <br/>
-                📱Social Media: Instagram | TikTok <br/>
+                <img src="kluedlogo@kluedskincare.com"/>'
             </p>
-            `,
-        });
-    
+            `, // Embedded image links to content ID
+            attachments: [{
+              filename: 'logo.png',
+              path: './src/logo.png',
+              cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+            }]
+        })
+        
         res.status(200).json(true)
     }catch (err) {
         console.log(err)
