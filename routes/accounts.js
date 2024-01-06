@@ -221,15 +221,11 @@ router.post("/update-account/:id", auth, async (req, res) =>{
 })
 
 router.delete("/delete-account/:id", async (req, res) => {
-  console.log("recieved: "+req.params)
-  if (typeof req.params.id != "string") req.params.id = ""
-      const doc = await accounts.findOne({ _id: new ObjectId(req.params.id) })
-      console.log("found: " +doc)
+  const doc = await accounts.findById(req.params.id)
   if (doc?.displayimage) {
       cloudinary.uploader.destroy(doc.displayimage)
   }
-  const account = await accounts.deleteOne(doc)  
-  console.log("deleted: "+account)
+  const account = await accounts.findByIdAndDelete(doc)  
   if (account) {
     res.status(200).json(account)
   } else {
