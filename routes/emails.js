@@ -1,9 +1,12 @@
 const express = require ("express");
-const product = require ("../models/emails.js");
 const emails = require("../models/emails.js");
 const router = express.Router();
 const nodemailer = require("nodemailer");
 const auth = require("../middleware/auth");
+const verification = require("../models/verification.js");
+const bcrypt = require("bcryptjs");
+const accounts = require ("../models/accounts.js");
+const { ObjectId } = require ("mongodb");
 
 router.post("/submit-email", async (req, res) => {
     try {
@@ -76,9 +79,8 @@ router.post("/send-policy-email", auth, async (req, res) => {
               pass: process.env.EMAIL_PASS, 
             },
             tls : { rejectUnauthorized: false }
-        });
-        
-        // Define and send message inside transporter.sendEmail() and await info about send from promise:
+        })
+
         let info = await transporter.sendMail({
             from: '<trainingandpolicies@kluedskincare.com>',
             to: maillist,
@@ -116,9 +118,36 @@ router.post("/send-policy-email", auth, async (req, res) => {
               cid: 'kluedlogo@kluedskincare.com' // Sets content ID
             }]
         })
-        
         res.status(200).json(true)
     }catch (err) {
+        console.log(err)
+        res.status(500).json(err)
+    }
+})
+
+router.post("/verify-email/:id/:uniqueString", async (req, res) => {
+    try {
+        const findVerification = await verification.find({userid: req.params.id})
+        if (findVerification.length>0) {
+            if (findVerification[0].expiration < Date.now()) {
+                const expiration = await verification.deleteOne({userid: req.params.id})
+                res.status(200).json("Link expired! Verification links only last for 3 days. Register again to continue.")
+            } else {
+                const uniqueCode = await bcrypt.compare(req.params.uniqueString, findVerification[0].encryptedstring)
+                if (uniqueCode) {
+                    const verifyAccount = await accounts.findByIdAndUpdate({ _id: new ObjectId(req.params.id) }, {verified: true})
+                    if (verifyAccount) {
+                        await verification.deleteOne({userid: req.params.id})
+                        res.status(200).json("Successfully verified your Klued Employee Portal Account")
+                    }
+                } else {
+                    res.status(200).json("Invalid credentials. Try again.")
+                }
+            }
+        } else {
+            res.status(200).json("Verification not found. Your account is probably verified, please try to login.")
+        }
+    } catch (err) {
         console.log(err)
         res.status(500).json(err)
     }

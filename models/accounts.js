@@ -28,7 +28,11 @@ const accountSchema = new mongoose.Schema({
     },
     orders: [ 
         { type: mongoose.Schema.Types.ObjectId, ref: "product"},
-    ]
+    ],
+    verified: {
+        type: Boolean,
+        default: false
+    }
 }, { timestamps: true })
 
 module.exports= mongoose.model("account", accountSchema)

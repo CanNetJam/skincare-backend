@@ -6,41 +6,115 @@ const router = express.Router();
 const auth = require("../middleware/auth");
 const { ObjectId } = require ("mongodb");
 const cloudinary = require('cloudinary').v2
+const nodemailer = require("nodemailer");
+const { v4: uuidv4 } = require('uuid');
+const verification = require("../models/verification.js");
+const moment = require("moment");
 
 router.post("/register", async (req, res) => {
+    async function sendVerification(props){
+      const uniqueString = uuidv4() + props._id
+      const maillist = [
+        props.email,
+      ]
+      
+      let transporter = nodemailer.createTransport({
+          host: "smtp.hostinger.com", 
+          port: 465, 
+          secure: true, 
+          auth: {
+            user: "trainingandpolicies@kluedskincare.com", 
+            pass: process.env.EMAIL_PASS, 
+          },
+          tls : { rejectUnauthorized: false }
+      })
+
+      const encryptedString = await bcrypt.hash(uniqueString, 10)
+
+      let obj = {
+        userid: props._id,
+        encryptedstring: encryptedString,
+        expiration: Date.now() + 259200000
+      }
+
+      const saveVerification = await verification.create(obj)
+      if (saveVerification) {
+        let formattedDate = moment(saveVerification.expiration).format('MMMM DD, YYYY')
+        let info = await transporter.sendMail({
+            from: '<trainingandpolicies@kluedskincare.com>',
+            to: maillist,
+            cc: '',
+            subject: `Do Not Reply - Email Verification`,
+            html: `
+            <h4>Klued Email Account Verification</h4>
+            <p>
+                Hi ${props.firstname+" "+props.lastname},
+                <br/>
+                <br/>
+                This email is sent to you in order to verify your email account that is registered to your account.
+                Click <a href=${"https://kluedskincare.com/#/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
+                <br/>
+                <br/>
+                This link will expire on <b>${formattedDate}</b>.
+                <br/>
+                <br/>
+                <i>This is a system-generated email, please do not reply to this message.</i>
+                <br/>
+                <br/>
+                Regards,
+                <br/>
+                <br/>
+                <b>Klued Employee Portal</b>
+                <br/>
+                <img src="kluedlogo@kluedskincare.com"/>'
+            </p>
+            `, // Embedded image links to content ID
+            attachments: [{
+              filename: 'logo.png',
+              path: './src/logo.png',
+              cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+            }]
+        })
+      }
+    }
+
     const user = await accounts.findOne({email: req.body.email})
     if (user){
         return res.status(200).send(false)
     }
     const newPassword = await bcrypt.hash(req.body.password, 10)
     try {
-        let obj = {}
-        req.body.type === "Customer" ?
-        obj = {
-            firstname: req.body.firstname,
-            lastname: req.body.lastname,
-            type: req.body.type,
-            email: req.body.email,
-            password: newPassword,
-        }
-        :
-        obj = {
+      let obj = {}
+      req.body.type === "Customer" ?
+      obj = {
           firstname: req.body.firstname,
           lastname: req.body.lastname,
           type: req.body.type,
           email: req.body.email,
           password: newPassword,
-          phone: req.body.phone,
-          department: req.body.department,
-          job: req.body.job,
-          access: JSON.parse(req.body.access),
-        }
-        const addAccount = await accounts.create(obj)
-        if (addAccount) {
-            res.status(200).json(true)
-        }
+          verified: false,
+      }
+      :
+      obj = {
+        firstname: req.body.firstname,
+        lastname: req.body.lastname,
+        type: req.body.type,
+        email: req.body.email,
+        password: newPassword,
+        phone: req.body.phone,
+        department: req.body.department,
+        job: req.body.job,
+        access: JSON.parse(req.body.access),
+        verified: false,
+      }
+      const addAccount = await accounts.create(obj)
+      if (addAccount) {
+        //handle user verification
+        sendVerification(addAccount)
+        res.status(200).json(true)
+      }
     } catch (err) {
-        console.log(err)
+      console.log(err)
     }
 })
 
@@ -69,7 +143,8 @@ router.post("/login", async (req, res) =>{
             createdAt: login.createdAt,
             email: login.email,
             displayimage: login.displayimage,
-            access: login.access
+            access: login.access,
+            verified: login.verified
           }
         })
       }
@@ -78,7 +153,6 @@ router.post("/login", async (req, res) =>{
 
 router.get("/user-data", auth, async (req, res) => {
   const user = await accounts.findById(req.user._id)
-
   res.json({
     _id: user._id,
     firstname: user.firstname,
@@ -90,7 +164,8 @@ router.get("/user-data", auth, async (req, res) => {
     createdAt: user.createdAt,
     email: user.email,
     displayimage: user.displayimage,
-    access: user.access
+    access: user.access,
+    verified: user.verified
   })
 })
 
