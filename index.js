@@ -12,8 +12,8 @@ const emailsRoute = require ('./routes/emails');
 const accountsRoute = require ('./routes/accounts');
 const tokenRoute = require ('./routes/token');
 
-//mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
-mongoose.connect(process.env.CONNECTIONSTRING , {
+mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
+//mongoose.connect(process.env.CONNECTIONSTRING , {
 })
 
 const app = express();

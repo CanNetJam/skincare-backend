@@ -306,4 +306,81 @@ router.post("/update-account-info/:id", auth, async (req, res) => {
   }
 })
 
+router.post("/reset-password/:email", async (req, res) => {
+  try {
+      const user = await accounts.findOne({email: req.params.email})
+      if (user) {
+        let randomNum = ""
+        for ( let i = 0; i<6; i++ ){
+          randomNum = randomNum + (Math.floor(Math.random() * 10)).toString()
+        }
+        const encryptedPass = await bcrypt.hash(randomNum, 10)
+        const updatedAccount = await accounts.findByIdAndUpdate({ _id: user._id }, {password: encryptedPass})
+        
+        if (updatedAccount) {
+          const maillist = [
+            req.params.email,
+          ]
+          
+          let transporter = nodemailer.createTransport({
+              host: "smtp.hostinger.com", 
+              port: 465, 
+              secure: true, 
+              auth: {
+                user: "trainingandpolicies@kluedskincare.com", 
+                pass: process.env.EMAIL_PASS, 
+              },
+              tls : { rejectUnauthorized: false }
+          })
+          
+          // http://localhost:5173/#/login
+          let info = await transporter.sendMail({
+                from: '<trainingandpolicies@kluedskincare.com>',
+                to: maillist,
+                cc: '',
+                subject: `Do Not Reply - Account Password Reset`,
+                html: `
+                <h4>Employee Portal Account Password Reset</h4>
+                <p>
+                    Hi ${updatedAccount.firstname+" "+updatedAccount.lastname},
+                    <br/>
+                    <br/>
+                    This email is sent to you in order to help you recover your Klued Account. 
+                    Your password is now reset to <b>${randomNum}</b>. Use this to login on the Klued Employee Portal.
+                    <br/>
+                    <br/>
+                    <b>Note:</b> This password is not secure, please change it immediately.
+                    <br/>
+                    <br/>
+                    Click <a href="https://kluedskincare.com/login">here</a> to head over the website.
+                    <br/>
+                    <br/>
+                    <i>This is a system-generated email, please do not reply to this message.</i>
+                    <br/>
+                    <br/>
+                    Regards,
+                    <br/>
+                    <br/>
+                    <b>Klued Employee Portal</b>
+                    <br/>
+                    <img src="kluedlogo@kluedskincare.com"/>'
+                </p>
+                `, // Embedded image links to content ID
+                attachments: [{
+                  filename: 'logo.png',
+                  path: './src/logo.png',
+                  cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+                }]
+          })
+        }
+        res.status(200).json("Please check your email for the temporary password.")
+      } else {
+        res.status(200).json("User not found.")
+      }
+  } catch (err) {
+      console.log(err)
+  }
+  
+})
+
 module.exports = router
