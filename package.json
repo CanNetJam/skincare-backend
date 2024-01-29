@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "ngrok": "ngrok"
   },
   "author": "",
   "license": "ISC",
@@ -21,6 +22,7 @@
     "moment": "^2.30.1",
     "mongodb": "^6.3.0",
     "mongoose": "^8.0.2",
+    "ngrok": "^5.0.0-beta.2",
     "nodemailer": "^6.9.8",
     "nodemon": "^3.0.1",
     "uuid": "^9.0.1"

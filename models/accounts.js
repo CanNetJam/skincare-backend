@@ -11,12 +11,17 @@ const accountSchema = new mongoose.Schema({
     job: String,
     access: [],
     age: Number,
-    region: String, 
-    province: String,
-    city: String,
     sex: String,
     phone: String,
     citizenship: String,
+    billingaddress: {
+        region: String, 
+        province: String,
+        city: String,
+        barangay: String,
+        postal: String,
+        street: String
+    },
     email: {
         type: String,
         required: true,
@@ -26,8 +31,18 @@ const accountSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    orders: [ 
-        { type: mongoose.Schema.Types.ObjectId, ref: "product"},
+    cart: [ 
+        {
+            type: { type: String}, 
+            product: {
+                type: mongoose.Schema.Types.ObjectId,
+                required: true,
+                ref: function() {
+                    return this.type==="single" ? 'product' : 'package'
+                }
+            },
+            quantity: {type: Number}
+        }
     ],
     verified: {
         type: Boolean,

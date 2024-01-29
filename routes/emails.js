@@ -71,7 +71,7 @@ router.post("/send-policy-email", auth, async (req, res) => {
         }
         
         let transporter = nodemailer.createTransport({
-            host: "smtp.hostinger.com", 
+            host: "smtpout.secureserver.net", 
             port: 465, 
             secure: true, 
             auth: {
@@ -84,7 +84,7 @@ router.post("/send-policy-email", auth, async (req, res) => {
         let info = await transporter.sendMail({
             from: '<trainingandpolicies@kluedskincare.com>',
             to: maillist,
-            cc: 'mcanega@kluedskincare.com',
+            cc: '',
             subject: `Do Not Reply - ${req.body.fullname+"'s "}Internal Policy Email Confirmation`,
             html: `
             <h4>Klued Internal Policy Email Confirmation</h4>
