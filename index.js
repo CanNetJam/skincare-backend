@@ -13,8 +13,8 @@ const accountsRoute = require ('./routes/accounts');
 const tokenRoute = require ('./routes/token');
 const orderRoute = require ('./routes/orders');
 
-//mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
-mongoose.connect(process.env.CONNECTIONSTRING , {
+mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
+//mongoose.connect(process.env.CONNECTIONSTRING , {
 })
 
 const app = express();
