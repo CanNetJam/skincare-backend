@@ -4,6 +4,7 @@ const orders = require ("../models/orders.js");
 const tickets = require ("../models/tickets.js");
 const auth = require("../middleware/auth");
 const axios = require('axios');
+const { ObjectId } = require ("mongodb");
 
 router.post("/submit-ticket", auth, async (req, res) => {
     try {
@@ -39,7 +40,7 @@ router.get("/all-tickets", auth, async (req, res) => {
         .limit(ticketsPerPage)
         .populate({path:"orderid", select:["deliverystatus", "items", "paymentoption", "billingstatus", "deliverystatus", "amounttotal", "amountpaid", "createdAt", "paidat", "paymentid"]})
         .sort({createdAt: -1})
-        
+
         const userTickets = await tickets.find({$and: [
             {status: req.query.status!=="" ? req.query.status : {$ne: "Pending"}},
             {createdAt: {$gte: req.query.start, $lt: req.query.end}},
