@@ -27,10 +27,13 @@ router.get("/all-emails", async (req, res) => {
         const emailsPerPage = req.query.limit
         const startDate = req.query.startDate
         const endDate = req.query.endDate
-        
-        let condition = {createdAt: {$gte: startDate, $lte: endDate}}
-        const allEmail = await emails.find(condition).skip(page*emailsPerPage).limit(emailsPerPage)
-        const allEmails = await emails.find(condition)
+        const allEmail = await emails.find({$and: [ 
+                {email: new RegExp(req.query.searchString, 'i')}, 
+                {createdAt: {$gte: startDate, $lte: endDate}} 
+            ]})
+            .skip(page*emailsPerPage)
+            .limit(emailsPerPage)
+        const allEmails = await emails.find({$and: [ {email: new RegExp(req.query.searchString, 'i')}, {createdAt: {$gte: startDate, $lte: endDate}} ]})
         
         let a = Math.floor(allEmails.length/emailsPerPage)
         let b = allEmails.length%emailsPerPage

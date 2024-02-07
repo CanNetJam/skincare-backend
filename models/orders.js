@@ -51,6 +51,9 @@ const ordersSchema = new mongoose.Schema({
     paidat: {
         type: Date
     },
+    refundedat: {
+        type: Date
+    },
     billingstatus: {
         type: String
     },
@@ -62,6 +65,24 @@ const ordersSchema = new mongoose.Schema({
     },
     trackingnumber: {
         type: String
+    },
+    paymentid: {
+        type: String
+    },
+    paymentinentid: {
+        type: String
+    },
+    sourceid: {
+        type: String
+    },
+    balancetransactionid: {
+        type: String
+    },
+    reason: {
+        type: String
+    },
+    shippingfee: {
+        type: Number
     }
 }, { timestamps: true })
 

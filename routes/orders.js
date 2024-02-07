@@ -6,6 +6,7 @@ const package = require ("../models/package.js");
 const orders = require ("../models/orders.js");
 const auth = require("../middleware/auth");
 const axios = require('axios');
+const { ObjectId } = require ("mongodb");
 
 router.post("/submit-order/:id", auth, async (req, res) => {
     try {
@@ -18,7 +19,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
             owner: req.body.firstname + " " + req.body.lastname,
             email: req.body.email,
             phone: req.body.phone,
-            amounttotal: req.body.amounttotal,
+            amounttotal: req.body.subtotal,
             amountpaid: req.body.amounttotal,
             billingaddress: {
                 region: req.body.region, 
@@ -34,6 +35,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
             billingstatus: "On Hold",
             deliverystatus: "Seller Processing",
             codeused: "",
+            shippingfee: req.body.shippingfee
         }
 
         const addOrder = await orders.create(obj)
@@ -57,7 +59,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                 images: [
                     `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbBKxt5HI8PaE2fAIIP5u-OqFltGY_1P_6DPnoAl6UmQ-TntY-Nun6aYpcESrlqAerxBA&usqp=CAU`
                 ],
-                amount: 40*100,
+                amount: obj.shippingfee*100,
                 name: 'Flash Express',
                 quantity: 1
             })
@@ -79,7 +81,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                 headers: {
                     accept: 'application/json',
                     'Content-Type': 'application/json',
-                    authorization: 'Basic c2tfdGVzdF9iQzFuUU5rQmMxSHVrbnNMVXJERTVucDE6'
+                    authorization: process.env.PAYMONGO_SECRETKEY
                 },
                 data: {
                     data: {
@@ -102,11 +104,11 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                             show_description: true,
                             show_line_items: true,
                             reference_number: addOrder._id,
-                            cancel_url: `${true ? 'https://skincare-frontend.onrender.com' : 'https://kluedskincare.com/'}#/cartdetails`,
+                            cancel_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}#/cartdetails`,
                             description: `Order checkout paid through ${obj.paymentoption}`,
                             line_items: destructuredCart,
                             payment_method_types: [truePayment],
-                            success_url: `${true ? 'https://skincare-frontend.onrender.com' : 'https://kluedskincare.com/'}`,
+                            success_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}`,
                             metadata: {
                                 customer_number: req.params.id,
                                 deliveryoption: obj.deliveryoption,
@@ -134,7 +136,15 @@ router.post("/submit-order/:id", auth, async (req, res) => {
 
 router.post("/checkout_webhook", async (req, res) => {
     if (req.body.data.attributes.type==='payment.paid'){
-        const ourData = await orders.findByIdAndUpdate({_id: req.body.data.attributes.data.attributes.metadata.order_id}, {billingstatus: "Paid", ammountpaid: req.body.data.attributes.data.attributes.ammount/100, paidat: Date.now()})
+        const ourData = await orders.findByIdAndUpdate({_id: req.body.data.attributes.data.attributes.metadata.order_id}, {
+            billingstatus: "Paid", 
+            ammountpaid: req.body.data.attributes.data.attributes.ammount/100, 
+            paidat: Date.now(),
+            paymentid: req.body.data.attributes.data.id,
+            paymentinentid: req.body.data.attributes.data.attributes.payment_intent_id,
+            sourceid: req.body.data.attributes.data.attributes.source.id,
+            balancetransactionid: req.body.data.attributes.data.attributes.balance_transaction_id
+        })
         if (ourData) {
             await accounts.findByIdAndUpdate({_id: ourData.userid}, {cart: []}, {new: true})
             await orders.deleteMany({userid: ourData.userid, billingstatus: "On Hold"})
@@ -146,8 +156,67 @@ router.post("/checkout_webhook", async (req, res) => {
                 }
             })
         }
+    } else if (req.body.data.attributes.type==='payment.refunded') {
+        const ourData = await orders.findByIdAndUpdate({_id: req.body.data.attributes.data.attributes.metadata.order_id}, {
+            billingstatus: "Refunded",
+            refundedat: Date.now(),
+            deliverystatus: "Returned/Refunded",
+            paymentid: req.body.data.attributes.data.id,
+            paymentinentid: req.body.data.attributes.data.attributes.payment_intent_id,
+            sourceid: req.body.data.attributes.data.attributes.source.id,
+            balancetransactionid: req.body.data.attributes.data.attributes.balance_transaction_id
+        })
+
+        if (ourData){
+            ourData.items.map( async (a)=> {
+                if (a.type==="package") {
+                    await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                } else if (a.type==="single") {
+                    await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                }
+            }) 
+        }
     }
     res.status(200).send('Paymongo event transmitted!')
+})
+
+router.post("/cancel-order/:id", auth, async (req, res) => {
+    try {
+        const options = {
+            method: 'POST',
+            url: 'https://api.paymongo.com/refunds',
+            headers: {
+                accept: 'application/json',
+                'content-type': 'application/json',
+                authorization: process.env.PAYMONGO_SECRETKEY
+            },
+            data: {
+                data: {
+                    attributes: {
+                        amount: Number(req.body.amountpaid),
+                        payment_id: req.body.paymentid,
+                        reason: 'requested_by_customer',
+                        notes: req.body.reason
+                    }
+                }
+            }
+        }
+
+        axios.request(options)
+        .then(async function () {
+            const ourData = await orders.findByIdAndUpdate({_id: req.params.id}, {
+                billingstatus: "Refunded", 
+                deliverystatus: "Cancelled",
+                reason: req.body.reason
+            })
+            res.status(200).send(true)
+        })
+        .catch(function (error) {
+            console.error(error)
+        })
+    } catch (err) {
+        res.status(500).send(false)
+    }
 })
 
 router.get("/:id/:deliverystatus", auth, async (req, res) => {
@@ -155,48 +224,9 @@ router.get("/:id/:deliverystatus", auth, async (req, res) => {
         const page = req.query.page
         const ordersPerPage = req.query.limit
 
-        const userOrder = await orders.find({
-            userid: req.params.id, 
-            deliverystatus: req.params.deliverystatus==="Pending Orders" ? {$ne : "Delivered"} : "Delivered"
-        })
-        .skip(page*ordersPerPage)
-        .limit(ordersPerPage)
-        .populate({path:"items.item", select:["name", "displayimage", "price", "origprice"]})
-        .sort({createdAt: -1})
-
-        const userOrders = await orders.find({
-            userid: req.params.id, 
-            deliverystatus: req.params.deliverystatus==="Pending Orders" ? {$ne : "Delivered"} : "Delivered"
-        })
-
-        let a = Math.floor(userOrders.length/ordersPerPage)
-        let b = userOrders.length%ordersPerPage
-
-        if (b!==0) {
-            a=a+1
-        }
-
-        const obj = {
-            sortedOrders: userOrder,
-            totalOrders: a,
-            total: userOrders.length
-        }
-
-        res.status(200).send(obj)
-    } catch (err) {
-        res.status(500).json(err)
-    }
-})
-
-router.get("/all-orders", auth, async (req, res) => {
-    try {
-        const page = req.query.page 
-        const ordersPerPage = req.query.limit
         const userOrder = await orders.find({$and: [
-            {deliverystatus: req.query.tab==="Pending Orders" ? {$ne : "Delivered"} : "Delivered"},
-            {deliveryoption: req.query.deliveryoption!=="" ? req.query.deliveryoption : ["Flash Express", "J&T Express"]},
-            {deliverystatus: req.query.deliverystatus},
-            {createdAt: {$gte: req.query.start, $lt: req.query.end}}
+            {userid: req.params.id}, 
+            {$or: [{deliverystatus: req.params.deliverystatus==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned/Refunded"}]}
         ]})
         .skip(page*ordersPerPage)
         .limit(ordersPerPage)
@@ -204,8 +234,52 @@ router.get("/all-orders", auth, async (req, res) => {
         .sort({createdAt: -1})
 
         const userOrders = await orders.find({$and: [
-            {deliverystatus: req.query.tab==="Pending Orders" ? {$ne : "Delivered"} : "Delivered"},
-            {deliverystatus: req.query.deliverystatus}
+            {userid: req.params.id}, 
+            {$or: [{deliverystatus: req.params.deliverystatus==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned/Refunded"}]}
+        ]})
+
+        let a = Math.floor(userOrders.length/ordersPerPage)
+        let b = userOrders.length%ordersPerPage
+
+        if (b!==0) {
+            a=a+1
+        }
+
+        const obj = {
+            sortedOrders: userOrder,
+            totalOrders: a,
+            total: userOrders.length
+        }
+        res.status(200).send(obj)
+    } catch (err) {
+        res.status(500).json(err)
+    }
+})
+
+router.get("/all-orders",  async (req, res) => {
+    try {
+        const page = req.query.page 
+        const ordersPerPage = req.query.limit
+        const userOrder = await orders.find({$and: [
+            {$or: [{deliverystatus: req.query.tab==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.query.tab==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.query.tab==="Pending Orders" ? null : "Returned/Refunded"}]},
+            {deliveryoption: req.query.deliveryoption!=="" ? req.query.deliveryoption : ["Flash Express", "J&T Express"]},
+            {deliverystatus: req.query.deliverystatus!=="" ? req.query.deliverystatus : {$ne: null}},
+            {billingstatus: {$ne: "On Hold"}},
+            {createdAt: {$gte: req.query.start, $lt: req.query.end}},
+            {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
+        ]})
+        .skip(page*ordersPerPage)
+        .limit(ordersPerPage)
+        .populate({path:"items.item", select:["name", "displayimage", "price", "origprice"]})
+        .sort({createdAt: -1})
+        
+        const userOrders = await orders.find({$and: [
+            {$or: [{deliverystatus: req.query.tab==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.query.tab==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.query.tab==="Pending Orders" ? null : "Returned/Refunded"}]},
+            {deliveryoption: req.query.deliveryoption!=="" ? req.query.deliveryoption : ["Flash Express", "J&T Express"]},
+            {deliverystatus: req.query.deliverystatus!=="" ? req.query.deliverystatus : {$ne: null}},
+            {billingstatus: {$ne: "On Hold"}},
+            {createdAt: {$gte: req.query.start, $lt: req.query.end}},
+            {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
         ]})
         let a = Math.floor(userOrders.length/ordersPerPage)
         let b = userOrders.length%ordersPerPage
@@ -220,6 +294,18 @@ router.get("/all-orders", auth, async (req, res) => {
         }
         res.status(200).send(obj)
     } catch (err) {
+        res.status(500).json(err)
+    }
+})
+
+router.get("/get-order", auth, async (req, res) => {
+    try {
+        const searchOrder = await orders.findById(req.query.orderid)
+        .populate({path:"items.item", select:["name", "displayimage", "price", "origprice"]})
+
+        res.status(200).json(searchOrder)
+    }catch (err) {
+        console.log(err)
         res.status(500).json(err)
     }
 })
