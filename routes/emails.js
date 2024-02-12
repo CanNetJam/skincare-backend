@@ -59,6 +59,7 @@ router.post("/send-policy-email", auth, async (req, res) => {
         const maillist = [
             req.body.useremail,
             'echua@kluedskincare.com',
+            'carnatur@kluedskincare.com'
         ]
         let policyText = ""
         if(req.body.policytitle.length>1){
