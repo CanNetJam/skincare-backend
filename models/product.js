@@ -20,6 +20,9 @@ const productSchema = new mongoose.Schema({
     price: {
         type: Number,
     },
+    disprice: {
+        type: Number,
+    },
     productlinks: {
         shopee: { type: String },
         tiktok: { type: String },

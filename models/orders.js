@@ -83,6 +83,12 @@ const ordersSchema = new mongoose.Schema({
     },
     shippingfee: {
         type: Number
+    },
+    netamount: {
+        type: Number
+    },
+    transactionfee: {
+        type: Number
     }
 }, { timestamps: true })
 

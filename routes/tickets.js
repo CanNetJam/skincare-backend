@@ -77,9 +77,10 @@ router.post("/ticket-response/:id", auth, async (req, res) => {
                 data: {
                     data: {
                         attributes: {
-                            amount: Number(req.body.amountpaid),
+                            amount: req.body.amountpaid*100,
                             payment_id: req.body.paymentid,
-                            reason: 'requested_by_customer'
+                            reason: 'requested_by_customer',
+                            notes: "Returned/Refunded"
                         }
                     }
                 }
@@ -112,7 +113,7 @@ router.get("/:id/:tab", auth, async (req, res) => {
         ]})
         .skip(page*ticketsPerPage)
         .limit(ticketsPerPage)
-        .populate({path:"orderid", select:["deliverystatus", "items", "paymentoption", "billingstatus", "deliverystatus", "amounttotal", "amountpaid", "createdAt", "paidat", "paymentid"]})
+        .populate({path:"orderid", select:["deliverystatus", "items", "paymentoption", "billingstatus", "deliverystatus", "amounttotal", "amountpaid", "createdAt", "paidat", "paymentid", "userid"]})
         .sort({updatedAt: -1})
         
         const userTickets = await tickets.find({$and: [

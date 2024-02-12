@@ -10,6 +10,7 @@ const { ObjectId } = require ("mongodb");
 
 router.post("/submit-order/:id", auth, async (req, res) => {
     try {
+
         let rawItems = JSON.parse(req.body.items)
         rawItems = rawItems.map((a)=> {
             return {...a, item: a.product._id, price: a.product.price || a.product.origprice, quantity: a.quantity}
@@ -74,7 +75,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
             } else if (obj.paymentoption==="Grabpay") {
                 truePayment='grab_pay'
             }
-
+            let newPhone = obj?.phone.toString().slice(0, 0)+ obj?.phone.toString().slice(1, obj?.phone.toString().length)
             const options = {
                 method: 'POST',
                 url: 'https://api.paymongo.com/v1/checkout_sessions',
@@ -97,18 +98,19 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                                 },
                                 name: obj.owner,
                                 email: obj.email,
-                                phone: obj.phone
+                                phone: truePayment==='card' ? newPhone : obj.phone 
+
                             },
                             customer_email: obj.email,
                             send_email_receipt: false,
                             show_description: true,
                             show_line_items: true,
                             reference_number: addOrder._id,
-                            cancel_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}#/cartdetails`,
-                            description: `Order checkout paid through ${obj.paymentoption}`,
+                            cancel_url: `${false ? 'http://localhost:5173/' : 'https://kluedskincare.com/'}#/cartdetails`,
+                            description: `Klued product order checkout paid through ${obj.paymentoption}`,
                             line_items: destructuredCart,
                             payment_method_types: [truePayment],
-                            success_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}`,
+                            success_url: `${false ? 'http://localhost:5173/' : 'https://kluedskincare.com/'}`,
                             metadata: {
                                 customer_number: req.params.id,
                                 deliveryoption: obj.deliveryoption,
@@ -140,6 +142,8 @@ router.post("/checkout_webhook", async (req, res) => {
             billingstatus: "Paid", 
             ammountpaid: req.body.data.attributes.data.attributes.ammount/100, 
             paidat: Date.now(),
+            netamount: req.body.data.attributes.data.attributes.net_amount/100,
+            transactionfee: req.body.data.attributes.data.attributes.fee/100,
             paymentid: req.body.data.attributes.data.id,
             paymentinentid: req.body.data.attributes.data.attributes.payment_intent_id,
             sourceid: req.body.data.attributes.data.attributes.source.id,
@@ -160,7 +164,7 @@ router.post("/checkout_webhook", async (req, res) => {
         const ourData = await orders.findByIdAndUpdate({_id: req.body.data.attributes.data.attributes.metadata.order_id}, {
             billingstatus: "Refunded",
             refundedat: Date.now(),
-            deliverystatus: "Returned/Refunded",
+            deliverystatus: req.body.data.attributes.data.attributes.refunds[0].attributes.notes,
             paymentid: req.body.data.attributes.data.id,
             paymentinentid: req.body.data.attributes.data.attributes.payment_intent_id,
             sourceid: req.body.data.attributes.data.attributes.source.id,
@@ -193,10 +197,10 @@ router.post("/cancel-order/:id", auth, async (req, res) => {
             data: {
                 data: {
                     attributes: {
-                        amount: Number(req.body.amountpaid),
+                        amount: req.body.amountpaid*100,
                         payment_id: req.body.paymentid,
                         reason: 'requested_by_customer',
-                        notes: req.body.reason
+                        notes: "Cancelled"
                     }
                 }
             }
@@ -215,6 +219,7 @@ router.post("/cancel-order/:id", auth, async (req, res) => {
             console.error(error)
         })
     } catch (err) {
+        console.log(err)
         res.status(500).send(false)
     }
 })
@@ -226,16 +231,16 @@ router.get("/:id/:deliverystatus", auth, async (req, res) => {
 
         const userOrder = await orders.find({$and: [
             {userid: req.params.id}, 
-            {$or: [{deliverystatus: req.params.deliverystatus==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned/Refunded"}]}
+            {$or: [{deliverystatus: req.params.deliverystatus==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned/Refunded"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned to Seller"}]}
         ]})
         .skip(page*ordersPerPage)
         .limit(ordersPerPage)
-        .populate({path:"items.item", select:["name", "displayimage", "price", "origprice"]})
+        .populate({path:"items.item", select:["name", "displayimage", "price", "origprice", "netamount", "transactionfee"]})
         .sort({createdAt: -1})
 
         const userOrders = await orders.find({$and: [
             {userid: req.params.id}, 
-            {$or: [{deliverystatus: req.params.deliverystatus==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned/Refunded"}]}
+            {$or: [{deliverystatus: req.params.deliverystatus==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned/Refunded"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned to Seller"}]}
         ]})
 
         let a = Math.floor(userOrders.length/ordersPerPage)
@@ -261,7 +266,7 @@ router.get("/all-orders",  async (req, res) => {
         const page = req.query.page 
         const ordersPerPage = req.query.limit
         const userOrder = await orders.find({$and: [
-            {$or: [{deliverystatus: req.query.tab==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.query.tab==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.query.tab==="Pending Orders" ? null : "Returned/Refunded"}]},
+            {$or: [{deliverystatus: req.query.tab==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.query.tab==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.query.tab==="Pending Orders" ? null : "Returned/Refunded"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned to Seller"}]},
             {deliveryoption: req.query.deliveryoption!=="" ? req.query.deliveryoption : ["Flash Express", "J&T Express"]},
             {deliverystatus: req.query.deliverystatus!=="" ? req.query.deliverystatus : {$ne: null}},
             {billingstatus: {$ne: "On Hold"}},
@@ -274,7 +279,7 @@ router.get("/all-orders",  async (req, res) => {
         .sort({createdAt: -1})
         
         const userOrders = await orders.find({$and: [
-            {$or: [{deliverystatus: req.query.tab==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.query.tab==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.query.tab==="Pending Orders" ? null : "Returned/Refunded"}]},
+            {$or: [{deliverystatus: req.query.tab==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.query.tab==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.query.tab==="Pending Orders" ? null : "Returned/Refunded"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned to Seller"}]},
             {deliveryoption: req.query.deliveryoption!=="" ? req.query.deliveryoption : ["Flash Express", "J&T Express"]},
             {deliverystatus: req.query.deliverystatus!=="" ? req.query.deliverystatus : {$ne: null}},
             {billingstatus: {$ne: "On Hold"}},
@@ -312,9 +317,41 @@ router.get("/get-order", auth, async (req, res) => {
 
 router.post("/update-order/:id", auth, async (req, res) => {
     try {
-        const updateOrder = await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status})
-        res.status(200).send(true)
+        if (req.body.status==="Returned to Seller"){
+            const options = {
+                method: 'POST',
+                url: 'https://api.paymongo.com/refunds',
+                headers: {
+                    accept: 'application/json',
+                    'content-type': 'application/json',
+                    authorization: process.env.PAYMONGO_SECRETKEY
+                },
+                data: {
+                    data: {
+                        attributes: {
+                            amount: Number(req.body.amountpaid),
+                            payment_id: req.body.paymentid,
+                            reason: 'requested_by_customer',
+                            notes: "Returned to Seller"
+                        }
+                    }
+                }
+            }
+    
+            axios.request(options)
+            .then(async function () {
+                await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status})
+                res.status(200).send(true)
+            })
+            .catch(function (error) {
+                console.error(error)
+            })
+        } else {
+            await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status})
+            res.status(200).send(true)
+        }
     } catch (err) {
+        console.log(err)
         res.status(500).send(false)
     }
 })

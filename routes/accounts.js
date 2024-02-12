@@ -225,7 +225,7 @@ router.get("/all-accounts", auth, async (req, res) => {
         const startDate = req.query.startDate
         const endDate = req.query.endDate
 
-        let condition = {$and: [{createdAt: {$gte: startDate, $lte: endDate}}, {type: req.query.type==="Customer" ? req.query.type : {$ne: "Customer"}}]}
+        let condition = {$and: [{createdAt: {$gte: startDate, $lte: endDate}}, {type: req.query.type!=="" ? req.query.type==="Customer" ? req.query.type : {$ne: "Customer"} : {$ne: null}}]}
         const allAccount = await accounts.find(condition).skip(page*accountsPerPage).limit(accountsPerPage)
         const allAccounts = await accounts.find(condition)
         
