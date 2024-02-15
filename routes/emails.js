@@ -13,8 +13,14 @@ router.post("/submit-email", async (req, res) => {
         const obj = {
             email: req.body.email
         }
-        const addEmail = await emails.create(obj)
-        res.status(200).json(addEmail)
+        const existingEmail = await emails.find({email: req.body.email}) 
+
+        if (existingEmail.length>0) {
+            res.status(200).json(true)
+        } else {
+            await emails.create(obj)
+            res.status(200).json(false)
+        }
     }catch (err) {
         console.log(err)
         res.status(500).json(err)

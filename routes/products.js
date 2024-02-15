@@ -72,7 +72,6 @@ router.post("/update-product", async (req, res) => {
             })
         }
     }
-    
     try {
         const obj = {
             name: req.body.name,
