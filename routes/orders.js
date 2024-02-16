@@ -91,7 +91,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                                 billing: {
                                     address: {
                                         city: obj.billingaddress.city,
-                                        state: obj.billingaddress.province,
+                                        state: obj.billingaddress.province!=='Not applicable' ? obj.billingaddress.province : obj.billingaddress.region,
                                         postal_code: obj.billingaddress.postal,
                                         country: 'PH',
                                         line1: obj.billingaddress.street,
@@ -218,7 +218,7 @@ router.post("/cancel-order/:id", auth, async (req, res) => {
                 data: {
                     data: {
                         attributes: {
-                            amount: req.body.amountpaid*100,
+                            amount: req.body.netamount*100,
                             payment_id: req.body.paymentid,
                             reason: 'requested_by_customer',
                             notes: "Cancelled"
@@ -354,10 +354,10 @@ router.get("/get-order", auth, async (req, res) => {
     }
 })
 
-router.post("/update-order/:id/:paymentoption", auth, async (req, res) => {
+router.post("/update-order/:id", auth, async (req, res) => {
     try {
         if (req.body.status==="Returned to Seller"){
-            if (req.params.paymentoption!=="COD") {
+            if (req.body.paymentoption!=="COD") {
                 const options = {
                     method: 'POST',
                     url: 'https://api.paymongo.com/refunds',
@@ -369,7 +369,7 @@ router.post("/update-order/:id/:paymentoption", auth, async (req, res) => {
                     data: {
                         data: {
                             attributes: {
-                                amount: Number(req.body.amountpaid),
+                                amount: req.body.netamount*100,
                                 payment_id: req.body.paymentid,
                                 reason: 'requested_by_customer',
                                 notes: "Returned to Seller"
@@ -386,7 +386,7 @@ router.post("/update-order/:id/:paymentoption", auth, async (req, res) => {
                 .catch(function (error) {
                     console.error(error)
                 })
-            } else if (req.params.paymentoption==="COD") {
+            } else if (req.body.paymentoption==="COD") {
                 const ourData = await orders.findByIdAndUpdate({_id: req.params.id}, {
                     billingstatus: "Cancelled",
                     refundedat: Date.now(),
@@ -405,10 +405,10 @@ router.post("/update-order/:id/:paymentoption", auth, async (req, res) => {
                 res.status(200).send(true)
             }
         } else {
-            if (req.params.paymentoption!=="COD"){
+            if (req.body.paymentoption!=="COD"){
                 await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status})
                 res.status(200).send(true)
-            } else if (req.params.paymentoption==="COD") {
+            } else if (req.body.paymentoption==="COD") {
                 await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status, billingstatus: "Paid", paidat: Date.now()})
                 res.status(200).send(true)
             }

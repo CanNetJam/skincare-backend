@@ -270,15 +270,15 @@ router.post("/update-account/:id", auth, async (req, res) =>{
 })
 
 router.post("/update-account/billing-address/:id", auth, async (req, res) =>{
-    const obj = {
-        region: req.body.region, 
-        province: req.body.province,
-        city: req.body.city,
-        barangay: req.body.barangay,
-        postal: req.body.postal,
-        street: req.body.street
-    }
     try {
+        const obj = {
+            region: req.body.region, 
+            province: req.body.province,
+            city: req.body.city,
+            barangay: req.body.barangay,
+            postal: req.body.postal,
+            street: req.body.street
+        }
         const user = await accounts.findByIdAndUpdate({ _id: new ObjectId(req.params.id) }, {billingaddress: obj})
         res.status(200).send(user)
     } catch (err) {

@@ -2,6 +2,8 @@ const express = require ("express");
 const router = express.Router();
 const orders = require ("../models/orders.js");
 const tickets = require ("../models/tickets.js");
+const product = require ("../models/product.js");
+const package = require ("../models/package.js");
 const auth = require("../middleware/auth");
 const axios = require('axios');
 const { ObjectId } = require ("mongodb");
@@ -38,7 +40,7 @@ router.get("/all-tickets", auth, async (req, res) => {
         ]})
         .skip(page*ticketsPerPage)
         .limit(ticketsPerPage)
-        .populate({path:"orderid", select:["deliverystatus", "items", "paymentoption", "billingstatus", "deliverystatus", "amounttotal", "amountpaid", "createdAt", "paidat", "paymentid"]})
+        .populate({path:"orderid", select:["deliverystatus", "items", "paymentoption", "billingstatus", "deliverystatus", "amounttotal", "amountpaid", "createdAt", "paidat", "paymentid", "netamount"]})
         .sort({createdAt: -1})
 
         const userTickets = await tickets.find({$and: [
@@ -65,40 +67,62 @@ router.get("/all-tickets", auth, async (req, res) => {
 
 router.post("/ticket-response/:id", auth, async (req, res) => {
     try {
+        console.log(req.body)
         if (req.body.status==="Approved") {
-            const options = {
-                method: 'POST',
-                url: 'https://api.paymongo.com/refunds',
-                headers: {
-                    accept: 'application/json',
-                    'content-type': 'application/json',
-                    authorization: process.env.PAYMONGO_SECRETKEY
-                },
-                data: {
+            if (req.body.paymentoption!=="COD") {
+                const options = {
+                    method: 'POST',
+                    url: 'https://api.paymongo.com/refunds',
+                    headers: {
+                        accept: 'application/json',
+                        'content-type': 'application/json',
+                        authorization: process.env.PAYMONGO_SECRETKEY
+                    },
                     data: {
-                        attributes: {
-                            amount: req.body.amountpaid*100,
-                            payment_id: req.body.paymentid,
-                            reason: 'requested_by_customer',
-                            notes: "Returned/Refunded"
+                        data: {
+                            attributes: {
+                                amount: req.body.netamount*100,
+                                payment_id: req.body.paymentid,
+                                reason: 'requested_by_customer',
+                                notes: "Returned/Refunded"
+                            }
                         }
                     }
                 }
-            }
 
-            axios.request(options)
-            .then(async function () {
+                axios.request(options)
+                .then(async function () {
+                    await tickets.findByIdAndUpdate({_id: req.params.id}, {status: req.body.status, respondedAt: Date.now(), response: req.body.reason})
+                    res.status(200).send(true)
+                })
+                .catch(function (error) {
+                    console.error(error)
+                })
+            } else if (req.body.paymentoption==="COD") {
                 await tickets.findByIdAndUpdate({_id: req.params.id}, {status: req.body.status, respondedAt: Date.now(), response: req.body.reason})
+                const ourData = await orders.findByIdAndUpdate({_id: req.body.orderid}, {
+                    billingstatus: "Refunded",
+                    refundedat: Date.now(),
+                    deliverystatus: "Returned/Refunded",
+                })
+        
+                if (ourData){
+                    ourData.items.map( async (a)=> {
+                        if (a.type==="package") {
+                            await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                        } else if (a.type==="single") {
+                            await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                        }
+                    }) 
+                }
                 res.status(200).send(true)
-            })
-            .catch(function (error) {
-                console.error(error)
-            })
+            }
         } else if (req.body.status==="Rejected") {
             await tickets.findByIdAndUpdate({_id: req.params.id}, {status: req.body.status, respondedAt: Date.now(), response: req.body.reason})
             res.status(200).send(true)
         }
     } catch (err) {
+        console.log(err)
         res.status(500).send(false)
     }
 })
