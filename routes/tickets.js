@@ -67,7 +67,6 @@ router.get("/all-tickets", auth, async (req, res) => {
 
 router.post("/ticket-response/:id", auth, async (req, res) => {
     try {
-        console.log(req.body)
         if (req.body.status==="Approved") {
             if (req.body.paymentoption!=="COD") {
                 const options = {
