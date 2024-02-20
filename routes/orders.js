@@ -107,11 +107,11 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                                 show_description: true,
                                 show_line_items: true,
                                 reference_number: addOrder._id,
-                                cancel_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}#/cartdetails`,
+                                cancel_url: `${false ? 'https://kluedskincare.com/' : 'https://kluedskincare.com/'}#/cartdetails`,
                                 description: `Klued product order checkout paid through ${obj.paymentoption}`,
                                 line_items: destructuredCart,
                                 payment_method_types: [truePayment],
-                                success_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}`,
+                                success_url: `${false ? 'http://localhost:5173/' : 'https://kluedskincare.com/'}`,
                                 metadata: {
                                     customer_number: req.params.id,
                                     deliveryoption: obj.deliveryoption,
