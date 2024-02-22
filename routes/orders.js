@@ -107,11 +107,11 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                                 show_description: true,
                                 show_line_items: true,
                                 reference_number: addOrder._id,
-                                cancel_url: `${false ? 'https://kluedskincare.com/' : 'https://kluedskincare.com/'}#/cartdetails`,
+                                cancel_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}#/cartdetails`,
                                 description: `Klued product order checkout paid through ${obj.paymentoption}`,
                                 line_items: destructuredCart,
                                 payment_method_types: [truePayment],
-                                success_url: `${false ? 'http://localhost:5173/' : 'https://kluedskincare.com/'}`,
+                                success_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}`,
                                 metadata: {
                                     customer_number: req.params.id,
                                     deliveryoption: obj.deliveryoption,
@@ -171,7 +171,7 @@ router.post("/checkout_webhook", async (req, res) => {
         })
         if (ourData) {
             await accounts.findByIdAndUpdate({_id: ourData.userid}, {cart: []}, {new: true})
-            await orders.deleteMany({userid: ourData.userid, billingstatus: "On Hold"})
+            await orders.deleteMany({ billingstatus: "On Hold"})
             ourData.items.map( async (a)=> {
                 if (a.type==="package") {
                     await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity}})
@@ -270,6 +270,7 @@ router.get("/:id/:deliverystatus", auth, async (req, res) => {
 
         const userOrder = await orders.find({$and: [
             {userid: req.params.id}, 
+            {billingstatus: {$ne: "On Hold"}},
             {$or: [{deliverystatus: req.params.deliverystatus==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned/Refunded"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned to Seller"}]}
         ]})
         .skip(page*ordersPerPage)
@@ -279,6 +280,7 @@ router.get("/:id/:deliverystatus", auth, async (req, res) => {
 
         const userOrders = await orders.find({$and: [
             {userid: req.params.id}, 
+            {billingstatus: {$ne: "On Hold"}},
             {$or: [{deliverystatus: req.params.deliverystatus==="Pending Orders" ? "Seller Processing" : "Cancelled"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? "In Transit" : "Delivered"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned/Refunded"}, {deliverystatus:req.params.deliverystatus==="Pending Orders" ? null : "Returned to Seller"}]}
         ]})
 

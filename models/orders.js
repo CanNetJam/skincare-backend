@@ -89,7 +89,11 @@ const ordersSchema = new mongoose.Schema({
     },
     transactionfee: {
         type: Number
-    }
+    },
+    reviewed: {
+        type: Boolean,
+        default: false
+    },
 }, { timestamps: true })
 
 module.exports= mongoose.model("orders", ordersSchema)
