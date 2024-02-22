@@ -358,7 +358,7 @@ router.get("/get-order", auth, async (req, res) => {
 
 router.post("/update-order/:id", auth, async (req, res) => {
     try {
-        if (req.body.status==="Returned to Seller"){
+        if (req.body.status==="Returned to Seller" || req.body.status==="Cancel Order"){
             if (req.body.paymentoption!=="COD") {
                 const options = {
                     method: 'POST',
@@ -374,7 +374,7 @@ router.post("/update-order/:id", auth, async (req, res) => {
                                 amount: req.body.netamount*100,
                                 payment_id: req.body.paymentid,
                                 reason: 'requested_by_customer',
-                                notes: "Returned to Seller"
+                                notes: req.body.status==="Returned to Seller" ? "Returned to Seller" : "Cancelled"
                             }
                         }
                     }
@@ -392,7 +392,7 @@ router.post("/update-order/:id", auth, async (req, res) => {
                 const ourData = await orders.findByIdAndUpdate({_id: req.params.id}, {
                     billingstatus: "Cancelled",
                     refundedat: Date.now(),
-                    deliverystatus: "Returned to Seller",
+                    deliverystatus: req.body.status==="Returned to Seller" ? "Returned to Seller" : "Cancelled",
                 })
         
                 if (ourData){
