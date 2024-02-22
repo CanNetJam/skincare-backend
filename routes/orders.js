@@ -103,7 +103,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
 
                                 },
                                 customer_email: obj.email,
-                                send_email_receipt: false,
+                                send_email_receipt: true,
                                 show_description: true,
                                 show_line_items: true,
                                 reference_number: addOrder._id,
