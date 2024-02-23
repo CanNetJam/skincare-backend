@@ -3,6 +3,7 @@ const router = express.Router();
 const reviews = require ("../models/reviews.js");
 const orders = require ("../models/orders.js");
 const auth = require("../middleware/auth");
+const cloudinary = require('cloudinary').v2
 
 router.post("/submit-review", auth, async (req, res) => {
     try {
@@ -133,6 +134,20 @@ router.post("/add-upvote", async (req, res) => {
         res.status(200).json(true)
     } catch (err) {
         res.status(500).send(false)
+    }
+})
+
+router.delete("/delete-review/:id", async (req, res) => {
+    const doc = await reviews.findById(req.params.id)
+
+    if (doc?.reviewimage) {
+        cloudinary.uploader.destroy(doc.reviewimage)
+    }
+    const account = await reviews.findByIdAndDelete(doc)  
+    if (account) {
+        res.status(200).json(account)
+    } else {
+        res.status(500).json(false)
     }
 })
 
