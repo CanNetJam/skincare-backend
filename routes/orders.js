@@ -37,8 +37,8 @@ router.post("/submit-order/:id", auth, async (req, res) => {
             deliverystatus: "Seller Processing",
             codeused: "",
             shippingfee: req.body.shippingfee,
-            discount: req.body.subtotal+req.body.shippingfee>(300*100) ? req.body.discount : 0,
-            discountid: req.body.subtotal+req.body.shippingfee>(300*100) ? req.body.discountid : ''
+            discount: (req.body.subtotal+req.body.shippingfee)*100>(300*100) ? req.body.discount : 0,
+            discountid: (req.body.subtotal+req.body.shippingfee)*100>(300*100) ? req.body.discountid : ''
         }
 
         const addOrder = await orders.create(obj)
@@ -52,7 +52,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                         images: [
                             `https://res.cloudinary.com/drjkqwabe/image/upload/f_auto,q_50/${a.product.displayimage}.jpg`
                         ],
-                        amount: req.body.subtotal+req.body.shippingfee>(300*100) ? Math.floor((a.price-(a.price*(req.body.discount/100)))*100) : a.price*100,
+                        amount: (req.body.subtotal+req.body.shippingfee)*100>(300*100) ? Math.floor((a.price-(a.price*(req.body.discount/100)))*100) : a.price*100,
                         name: a.product.name,
                         description: a.item,
                         quantity: a.quantity
@@ -63,7 +63,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                     images: [
                         `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbBKxt5HI8PaE2fAIIP5u-OqFltGY_1P_6DPnoAl6UmQ-TntY-Nun6aYpcESrlqAerxBA&usqp=CAU`
                     ],
-                    amount: req.body.subtotal+req.body.shippingfee>(300*100) ? Math.floor((obj.shippingfee-(obj.shippingfee*(req.body.discount/100)))*100) : obj.shippingfee*100,
+                    amount: (req.body.subtotal+req.body.shippingfee)*100>(300*100) ? Math.floor((obj.shippingfee-(obj.shippingfee*(req.body.discount/100)))*100) : obj.shippingfee*100,
                     name: 'Flash Express',
                     quantity: 1
                 })
@@ -118,7 +118,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                                     customer_number: req.params.id,
                                     deliveryoption: obj.deliveryoption,
                                     order_id: addOrder._id,
-                                    discount_id: req.body.subtotal+req.body.shippingfee>(300*100) ? obj.discountid : ''
+                                    discount_id: (req.body.subtotal+req.body.shippingfee)*100>(300*100) ? obj.discountid : ''
                                 }
                             }
                         }
