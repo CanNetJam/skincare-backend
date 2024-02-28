@@ -25,7 +25,15 @@ const ordersSchema = new mongoose.Schema({
             },
             price: {type: Number},
             quantity: {type: Number},
-            type: {type: String}
+            type: {type: String},
+            withticket: {
+                type: Boolean,
+                default: false
+            },
+            reviewed: {
+                type: Boolean,
+                default: false
+            }
         }
     ],
     amounttotal: {
@@ -84,6 +92,9 @@ const ordersSchema = new mongoose.Schema({
     reason: {
         type: String
     },
+    cancelreason: {
+        type: String
+    },
     shippingfee: {
         type: Number
     },
@@ -93,10 +104,12 @@ const ordersSchema = new mongoose.Schema({
     transactionfee: {
         type: Number
     },
-    reviewed: {
-        type: Boolean,
-        default: false
+    discount: {
+        type: Number
     },
+    discountid: {
+        type: String
+    }
 }, { timestamps: true })
 
 module.exports= mongoose.model("orders", ordersSchema)

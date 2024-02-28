@@ -7,6 +7,25 @@ const ticketsSchema = new mongoose.Schema({
     userid: {
         type: mongoose.Schema.Types.ObjectId, ref: "accounts"
     },
+    item: { 
+        product: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+            ref: function() {
+                return this.type==="single" ? 'product' : 'package'
+            }
+        },
+        name: {type:String},
+        price: {type: Number},
+        quantity: {type: Number},
+        type: {type: String}
+    },
+    transactionfee: {
+        type: Number
+    },
+    refundedamount: {
+        type: Number
+    },
     owner: {
         type: String
     },
@@ -38,6 +57,9 @@ const ticketsSchema = new mongoose.Schema({
         type: String    
     },
     respondedAt: {
+        type: Date    
+    },
+    expiresAt: {
         type: Date    
     }
 }, { timestamps: true })

@@ -4,13 +4,13 @@ const accounts = require ("../models/accounts.js");
 const product = require ("../models/product.js");
 const package = require ("../models/package.js");
 const orders = require ("../models/orders.js");
+const vouchers = require ("../models/vouchers.js");
 const auth = require("../middleware/auth");
 const axios = require('axios');
 const { ObjectId } = require ("mongodb");
 
 router.post("/submit-order/:id", auth, async (req, res) => {
     try {
-
         let rawItems = JSON.parse(req.body.items)
         rawItems = rawItems.map((a)=> {
             return {...a, item: a.product._id, price: a.product.price || a.product.origprice, quantity: a.quantity}
@@ -36,7 +36,9 @@ router.post("/submit-order/:id", auth, async (req, res) => {
             billingstatus: "On Hold",
             deliverystatus: "Seller Processing",
             codeused: "",
-            shippingfee: req.body.shippingfee
+            shippingfee: req.body.shippingfee,
+            discount: req.body.subtotal+req.body.shippingfee>(300*100) ? req.body.discount : 0,
+            discountid: req.body.subtotal+req.body.shippingfee>(300*100) ? req.body.discountid : ''
         }
 
         const addOrder = await orders.create(obj)
@@ -50,7 +52,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                         images: [
                             `https://res.cloudinary.com/drjkqwabe/image/upload/f_auto,q_50/${a.product.displayimage}.jpg`
                         ],
-                        amount: a.price*100,
+                        amount: req.body.subtotal+req.body.shippingfee>(300*100) ? Math.floor((a.price-(a.price*(req.body.discount/100)))*100) : a.price*100,
                         name: a.product.name,
                         description: a.item,
                         quantity: a.quantity
@@ -61,7 +63,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                     images: [
                         `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbBKxt5HI8PaE2fAIIP5u-OqFltGY_1P_6DPnoAl6UmQ-TntY-Nun6aYpcESrlqAerxBA&usqp=CAU`
                     ],
-                    amount: obj.shippingfee*100,
+                    amount: req.body.subtotal+req.body.shippingfee>(300*100) ? Math.floor((obj.shippingfee-(obj.shippingfee*(req.body.discount/100)))*100) : obj.shippingfee*100,
                     name: 'Flash Express',
                     quantity: 1
                 })
@@ -107,29 +109,34 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                                 show_description: true,
                                 show_line_items: true,
                                 reference_number: addOrder._id,
-                                cancel_url: `${false ? 'http://localhost:5173/' : 'https://kluedskincare.com/'}#/cartdetails`,
+                                cancel_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}#/cartdetails`,
                                 description: `Klued product order checkout paid through ${obj.paymentoption}`,
                                 line_items: destructuredCart,
                                 payment_method_types: [truePayment],
-                                success_url: `${false ? 'http://localhost:5173/' : 'https://kluedskincare.com/'}`,
+                                success_url: `${true ? 'https://skincare-frontend.onrender.com/' : 'https://kluedskincare.com/'}`,
                                 metadata: {
                                     customer_number: req.params.id,
                                     deliveryoption: obj.deliveryoption,
-                                    order_id: addOrder._id
+                                    order_id: addOrder._id,
+                                    discount_id: req.body.subtotal+req.body.shippingfee>(300*100) ? obj.discountid : ''
                                 }
                             }
                         }
                         
                     }
                 }
+
                 axios.request(options)
                     .then(function (response) {
                         res.status(200).json(response.data)
                     })
                     .catch(function (error) {
-                        console.error("Checkout: "+error)
+                        console.error("Checkout"+error)
                     })
             } else if (addOrder.paymentoption==="COD") {
+                if (addOrder.discountid!==''){
+                    await vouchers.findByIdAndUpdate({_id: addOrder.discountid}, {status: "Used"})
+                }
                 const ourData = await orders.findByIdAndUpdate({_id: addOrder._id}, {
                     billingstatus: "COD", 
                     netamount: addOrder.amountpaid,
@@ -158,6 +165,9 @@ router.post("/submit-order/:id", auth, async (req, res) => {
 
 router.post("/checkout_webhook", async (req, res) => {
     if (req.body.data.attributes.type==='payment.paid'){
+        if(req.body.data.attributes.data.attributes.metadata.discount_id!==''){
+            await vouchers.findByIdAndUpdate({_id: req.body.data.attributes.data.attributes.metadata.discount_id}, {status: "Used"})
+        }
         const ourData = await orders.findByIdAndUpdate({_id: req.body.data.attributes.data.attributes.metadata.order_id}, {
             billingstatus: "Paid", 
             ammountpaid: req.body.data.attributes.data.attributes.ammount/100, 
@@ -244,6 +254,7 @@ router.post("/cancel-order/:id", auth, async (req, res) => {
                 billingstatus: "Cancelled",
                 refundedat: Date.now(),
                 deliverystatus: "Cancelled",
+                cancelreason: req.body.reason
             })
     
             if (ourData){
@@ -275,7 +286,7 @@ router.get("/:id/:deliverystatus", auth, async (req, res) => {
         ]})
         .skip(page*ordersPerPage)
         .limit(ordersPerPage)
-        .populate({path:"items.item", select:["name", "displayimage", "price", "origprice", "netamount", "transactionfee"]})
+        .populate({path:"items.item", select:["name", "displayimage", "price", "origprice", "netamount", "transactionfee", "stock"]})
         .sort({createdAt: -1})
 
         const userOrders = await orders.find({$and: [
@@ -393,6 +404,7 @@ router.post("/update-order/:id", auth, async (req, res) => {
                     billingstatus: "Cancelled",
                     refundedat: Date.now(),
                     deliverystatus: req.body.status==="Returned to Seller" ? "Returned to Seller" : "Cancelled",
+                    cancelreason: req.body.reason
                 })
         
                 if (ourData){

@@ -44,6 +44,7 @@ router.post("/create-product", async (req, res) => {
             extra: req.body.extra,
             displayimage: req.body.displayimage,
             price: req.body.price,
+            disprice: req.body.disprice,
             category: req.body.category,
             productlinks: {
                 shopee: req.body.shopeelink,
@@ -82,6 +83,7 @@ router.post("/update-product", async (req, res) => {
             extra: req.body.extra,
             displayimage: req.body.displayimage,
             price: req.body.price,
+            disprice: req.body.disprice,
             category: req.body.category,
             productlinks: {
                 shopee: req.body.shopeelink,

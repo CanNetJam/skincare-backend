@@ -12,22 +12,19 @@ const reviewsSchema = new mongoose.Schema({
         //just in case the account is deleted the name of the user is saved
         type: String
     },
-    product: [
-        {
-            productid: {
-                type: mongoose.Schema.Types.ObjectId,
-                required: true,
-                ref: function() {
-                    return this.type==="single" ? 'product' : 'package'
-                }
-            },
-            type: {
-                type: String
+    product:{
+        productid: {
+            type: mongoose.Schema.Types.ObjectId,
+            required: true,
+            ref: function() {
+                return this.type==="single" ? 'product' : 'package'
             }
+        },
+        type: {
+            type: String
         }
-    ],
+    },
     description:{
-        //just in case the account is deleted the name of the user is saved
         type: String
     },
     reviewimage: {

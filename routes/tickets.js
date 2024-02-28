@@ -10,6 +10,7 @@ const { ObjectId } = require ("mongodb");
 
 router.post("/submit-ticket", auth, async (req, res) => {
     try {
+        const itemFocus = JSON.parse(req.body.item)
         const obj = {
             orderid: req.body.orderid,
             userid: req.body.userid,
@@ -20,11 +21,41 @@ router.post("/submit-ticket", auth, async (req, res) => {
             waybillimage: req.body.waybillimage,
             productimage1: req.body.productimage1,
             productimage2: req.body.productimage2,
-            status: "Pending"
+            status: "Investigating",
+            transactionfee: req.body.transactionfee,
+            item: {
+                product: itemFocus.item._id,
+                name: itemFocus.item.name,
+                price: itemFocus.price,
+                quantity: req.body.itemquantity,
+                type: itemFocus.type
+            },
+            expiresAt: Date.now() + 172800000
         }
         const submitTicket = await tickets.create(obj)
+        if (submitTicket) {
+            const theOrder = await orders.findById({_id: obj.orderid})
+            let newItems = []
+            let oldItems = theOrder.items
+            for (let i=0; i<oldItems.length; i++) {
+                if (JSON.stringify(oldItems[i].item)===JSON.stringify(obj.item.product)) {    
+                    newItems.push({
+                        withticket: true,
+                        item: oldItems[i].item,
+                        price: oldItems[i].price,
+                        quantity: oldItems[i].quantity,
+                        type: oldItems[i].type,
+                        _id: oldItems[i]._id
+                    })
+                } else {
+                    newItems.push(oldItems[i])
+                }
+            }
+            await orders.findByIdAndUpdate({_id: obj.orderid}, {items: newItems })
+        }
         res.status(200).json(true)
     } catch (err) {
+        console.log(err)
         res.status(500).send(false)
     }
 })
@@ -34,7 +65,7 @@ router.get("/all-tickets", auth, async (req, res) => {
         const page = req.query.page 
         const ticketsPerPage = req.query.limit
         const userTicket = await tickets.find({$and: [
-            {status: req.query.status!=="" ? req.query.status : {$ne: "Pending"}},
+            {status: req.query.status!=="" ? req.query.status : {$ne: "Investigating"}},
             {createdAt: {$gte: req.query.start, $lt: req.query.end}},
             {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
         ]})
@@ -44,7 +75,7 @@ router.get("/all-tickets", auth, async (req, res) => {
         .sort({createdAt: -1})
 
         const userTickets = await tickets.find({$and: [
-            {status: req.query.status!=="" ? req.query.status : {$ne: "Pending"}},
+            {status: req.query.status!=="" ? req.query.status : {$ne: "Investigating"}},
             {createdAt: {$gte: req.query.start, $lt: req.query.end}},
             {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
         ]})
@@ -130,18 +161,24 @@ router.get("/:id/:tab", auth, async (req, res) => {
     try {
         const page = req.query.page 
         const ticketsPerPage = req.query.limit
+        // const userTicket = await tickets.find({$and: [
+        //     {userid: req.params.id}, 
+        //     {status: req.params.tab==="Pending Tickets" ? "Pending" : {$ne: "Pending"}}
+        // ]})
         const userTicket = await tickets.find({$and: [
-            {userid: req.params.id}, 
-            {status: req.params.tab==="Pending Tickets" ? "Pending" : {$ne: "Pending"}}
+            {userid: req.params.id}
         ]})
         .skip(page*ticketsPerPage)
         .limit(ticketsPerPage)
         .populate({path:"orderid", select:["deliverystatus", "items", "paymentoption", "billingstatus", "deliverystatus", "amounttotal", "amountpaid", "createdAt", "paidat", "paymentid", "userid"]})
         .sort({updatedAt: -1})
         
+        // const userTickets = await tickets.find({$and: [
+        //     {userid: req.params.id}, 
+        //     {status: req.params.tab==="Pending Tickets" ? "Pending" : {$ne: "Pending"}}
+        // ]})
         const userTickets = await tickets.find({$and: [
-            {userid: req.params.id}, 
-            {status: req.params.tab==="Pending Tickets" ? "Pending" : {$ne: "Pending"}}
+            {userid: req.params.id}
         ]})
         let a = Math.floor(userTickets.length/ticketsPerPage)
         let b = userTickets.length%ticketsPerPage

@@ -164,4 +164,15 @@ router.post("/verify-email/:id/:uniqueString", async (req, res) => {
     }
 })
 
+router.delete("/delete-email/:id", async (req, res) => {
+    const doc = await emails.findById(req.params.id)
+
+    const email = await emails.findByIdAndDelete(doc)  
+    if (email) {
+        res.status(200).json(email)
+    } else {
+        res.status(500).json(false)
+    }
+})
+
 module.exports = router

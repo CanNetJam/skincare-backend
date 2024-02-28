@@ -4,21 +4,19 @@ const reviews = require ("../models/reviews.js");
 const orders = require ("../models/orders.js");
 const auth = require("../middleware/auth");
 const cloudinary = require('cloudinary').v2
+const { ObjectId } = require ("mongodb");
 
 router.post("/submit-review", auth, async (req, res) => {
     try {
-        let rawItems = JSON.parse(req.body.item)
-        rawItems = rawItems.map((a)=> {
-            return {
-                productid: a.item._id,
-                type: a.type
-            }
-        })
+        const theItem = JSON.parse(req.body.itemtoreview)
         const obj = {
             orderid: req.body.orderid,
             userid: req.body.userid,
             owner: req.body.owner,
-            product: rawItems,
+            product: {
+                productid: theItem.item._id,
+                type: theItem.type
+            },
             description: req.body.description,
             reviewimage: req.body.reviewimage,
             rating: Number(req.body.rating),
@@ -28,10 +26,30 @@ router.post("/submit-review", auth, async (req, res) => {
         const createReview = await reviews.create(obj)
         
         if (createReview) {
-            await orders.findByIdAndUpdate({_id: obj.orderid}, {reviewed: true})
-            res.status(200).json(true)
+            const theOrder = await orders.findById({_id: obj.orderid})
+
+            let newItems = []
+            let oldItems = theOrder.items
+            for (let i=0; i<oldItems.length; i++) {
+                if (JSON.stringify(oldItems[i].item)===JSON.stringify(obj.product.productid)) {    
+                    newItems.push({
+                        reviewed: true,
+                        item: oldItems[i].item,
+                        price: oldItems[i].price,
+                        quantity: oldItems[i].quantity,
+                        type: oldItems[i].type,
+                        withticket: oldItems[i].withticket,
+                        _id: oldItems[i]._id
+                    })
+                } else {
+                    newItems.push(oldItems[i])
+                }
+            }
+            await orders.findByIdAndUpdate({_id: obj.orderid}, {items: newItems })
         }
+        res.status(200).json(true)
     } catch (err) {
+        console.log(err)
         res.status(500).send(false)
     }
 })
@@ -39,7 +57,6 @@ router.post("/submit-review", auth, async (req, res) => {
 router.get("/:id", async (req, res) => {
     try {
         const rawsort = req.query.sortBy
-
         function interpret(a) {
             let b, c
             if (a === "Newest first") {
@@ -57,22 +74,23 @@ router.get("/:id", async (req, res) => {
 
         const page = req.query.page 
         const reviewsPerPage = req.query.limit
+
         const orderReview = await reviews.find({$and: [
-            {product: {$elemMatch: {productid: req.params.id}}},
+            {'product.productid': new ObjectId(req.params.id)},
             {rating: req.query.filterBy!=='' ? req.query.filterBy : {$ne: null}}
         ]})
         .skip(page*reviewsPerPage)
         .limit(reviewsPerPage)
         .populate({path: "userid", select: ["firstname", "displayimage"]})
         .sort({[sort.b]: sort.c})
-        
+
         const orderReviews = await reviews.find({$and: [
-            {product: {$elemMatch: {productid: req.params.id}}},
+            {'product.productid': new ObjectId(req.params.id)},
             {rating: req.query.filterBy!=='' ? req.query.filterBy : {$ne: null}}
         ]})
 
         const allReviews = await reviews.find({$and: [
-            {product: {$elemMatch: {productid: req.params.id}}},
+            {'product.productid': new ObjectId(req.params.id)},
         ]})
 
         let a = Math.floor(orderReviews.length/reviewsPerPage)
@@ -83,28 +101,28 @@ router.get("/:id", async (req, res) => {
         }
 
         const fiveRating = await reviews.find({$and: [
-            { product: {$elemMatch: {productid: req.params.id}} },
+            {'product.productid': new ObjectId(req.params.id)},
             { rating: 5}
         ]})
         const fourRating = await reviews.find({$and: [
-            { product: {$elemMatch: {productid: req.params.id}} },
+            {'product.productid': new ObjectId(req.params.id)},
             { rating: 4}
         ]})
         const threeRating = await reviews.find({$and: [
-            { product: {$elemMatch: {productid: req.params.id}} },
+            {'product.productid': new ObjectId(req.params.id)},
             { rating: 3}
         ]})
         const twoRating = await reviews.find({$and: [
-            { product: {$elemMatch: {productid: req.params.id}} },
+            {'product.productid': new ObjectId(req.params.id)},
             { rating: 2}
         ]})
         const oneRating = await reviews.find({$and: [
-            { product: {$elemMatch: {productid: req.params.id}} },
+            {'product.productid': new ObjectId(req.params.id)},
             { rating: 1}
         ]})
 
         const mostUpvote = await reviews.find({$and: [
-            {product: {$elemMatch: {productid: req.params.id }}}
+            {'product.productid': new ObjectId(req.params.id)}
         ]})
         .populate({path: "userid", select: ["firstname", "displayimage"]})
         .sort({upvotes: -1})

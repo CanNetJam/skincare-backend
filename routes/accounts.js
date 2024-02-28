@@ -10,6 +10,7 @@ const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require('uuid');
 const verification = require("../models/verification.js");
 const moment = require("moment");
+const vouchers = require('../models/vouchers.js');
 
 router.post("/register", async (req, res) => {
     async function sendVerification(props){
@@ -40,7 +41,7 @@ router.post("/register", async (req, res) => {
         const saveVerification = await verification.create(obj)
         if (saveVerification) {
             let formattedDate = moment(saveVerification.expiration).format('MMMM Do YYYY, hh:mm A')
-            let info = await transporter.sendMail({
+            await transporter.sendMail({
                 from: '<trainingandpolicies@kluedskincare.com>',
                 to: maillist,
                 cc: '',
@@ -56,6 +57,69 @@ router.post("/register", async (req, res) => {
                     <br/>
                     <br/>
                     This link will expire on <b>${formattedDate}</b>.
+                    <br/>
+                    <br/>
+                    <i>This is a system-generated email, please do not reply to this message.</i>
+                    <br/>
+                    <br/>
+                    Regards,
+                    <br/>
+                    <br/>
+                    <b>${req.body.type === "Customer" ? 'Klued' : 'Klued Employee Portal'}</b>
+                    <br/>
+                    <img src="kluedlogo@kluedskincare.com"/>'
+                </p>
+                `, // Embedded image links to content ID
+                attachments: [{
+                filename: 'logo.png',
+                path: './src/logo.png',
+                cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+                }]
+            })
+
+            function makeid(length) {
+                let result = ''
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+                const charactersLength = characters.length
+                let counter = 0
+                while (counter < length) {
+                  result += characters.charAt(Math.floor(Math.random() * charactersLength))
+                  counter += 1
+                }
+                return result
+            }
+            
+            let voucher = makeid(6)
+            let obj = {
+                userid: props._id,
+                encryptedvoucher: voucher,
+                type: "Discount",
+                amount: 15,
+                minimum: 300,
+                maximum: 100,
+                expiration: Date.now() + 259200000,
+                status: "Unused"
+            }
+            const saveVoucher = await vouchers.create(obj)
+            let formattedVoucherDate = moment(saveVoucher.expiration).format('MMMM Do YYYY, hh:mm A')
+            await transporter.sendMail({
+                from: '<trainingandpolicies@kluedskincare.com>',
+                to: maillist,
+                cc: '',
+                subject: `Do Not Reply - Free Voucher upon Registration`,
+                html: `
+                <h4>Klued 15% Voucher</h4>
+                <p>
+                    Hi ${props.firstname+" "+props.lastname},
+                    <br/>
+                    <br/>
+                    Thank you for taking you time on registering an account to Klued Skincare. Here is a free <b>15%</b> off voucher for you to use upon checkout. You just need to use the code below when you purchase at least ₱300.00 worth of Klued products.
+                    <br/>
+                    <br/>
+                    <span style="font-size: 30px;"<b>${voucher}</b></span>
+                    <br/>
+                    <br/>
+                    This voucher will expire on <b>${formattedVoucherDate}</b>.
                     <br/>
                     <br/>
                     <i>This is a system-generated email, please do not reply to this message.</i>
@@ -110,7 +174,6 @@ router.post("/register", async (req, res) => {
         }
         const addAccount = await accounts.create(obj)
         if (addAccount) {
-            //handle user verification
             sendVerification(addAccount)
             res.status(200).json(true)
         }
@@ -225,7 +288,7 @@ router.get("/all-accounts", auth, async (req, res) => {
         const startDate = req.query.startDate
         const endDate = req.query.endDate
 
-        let condition = {$and: [{createdAt: {$gte: startDate, $lte: endDate}}, {type: req.query.type!=="" ? req.query.type==="Customer" ? req.query.type : {$ne: "Customer"} : {$ne: null}}]}
+        let condition = {$and: [{createdAt: {$gte: startDate, $lte: endDate}}, {$or: [ {email: new RegExp(req.query.searchString, 'i')}, {firstname: new RegExp(req.query.searchString, 'i')}, {lastname: new RegExp(req.query.searchString, 'i')}, {phone: new RegExp(req.query.searchString, 'i')} ]}, {type: req.query.type!=="" ? req.query.type==="Customer" ? req.query.type : {$ne: "Customer"} : {$ne: null}}]}
         const allAccount = await accounts.find(condition).skip(page*accountsPerPage).limit(accountsPerPage)
         const allAccounts = await accounts.find(condition)
         
@@ -453,7 +516,7 @@ router.post("/reset-password/:email", async (req, res) => {
         if (user) {
             let randomNum = ""
             for ( let i = 0; i<6; i++ ){
-            randomNum = randomNum + (Math.floor(Math.random() * 10)).toString()
+                randomNum = randomNum + (Math.floor(Math.random() * 10)).toString()
             }
             const encryptedPass = await bcrypt.hash(randomNum, 10)
             const updatedAccount = await accounts.findByIdAndUpdate({ _id: user._id }, {password: encryptedPass})
