@@ -1,11 +1,12 @@
 const mongoose = require ("mongoose");
+const accounts = require ('./accounts');
 
 const ticketsSchema = new mongoose.Schema({
     orderid: {
         type: mongoose.Schema.Types.ObjectId, ref: "orders"
     },
     userid: {
-        type: mongoose.Schema.Types.ObjectId, ref: "accounts"
+        type: mongoose.Schema.Types.ObjectId, ref: accounts
     },
     item: { 
         product: {

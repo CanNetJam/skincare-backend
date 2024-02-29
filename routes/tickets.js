@@ -65,18 +65,20 @@ router.get("/all-tickets", auth, async (req, res) => {
         const page = req.query.page 
         const ticketsPerPage = req.query.limit
         const userTicket = await tickets.find({$and: [
-            {status: req.query.status!=="" ? req.query.status : {$ne: "Investigating"}},
+            {status: req.query.status!=="" ? req.query.status : {$ne: null}},
             {createdAt: {$gte: req.query.start, $lt: req.query.end}},
+            {expiresAt: req.query.status==="Investigating" ? {$gte: req.query.end }: {$ne: null}},
             {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
         ]})
         .skip(page*ticketsPerPage)
         .limit(ticketsPerPage)
         .populate({path:"orderid", select:["deliverystatus", "items", "paymentoption", "billingstatus", "deliverystatus", "amounttotal", "amountpaid", "createdAt", "paidat", "paymentid", "netamount"]})
         .sort({createdAt: -1})
-
+        
         const userTickets = await tickets.find({$and: [
-            {status: req.query.status!=="" ? req.query.status : {$ne: "Investigating"}},
+            {status: req.query.status!=="" ? req.query.status : {$ne: null}},
             {createdAt: {$gte: req.query.start, $lt: req.query.end}},
+            {expiresAt: req.query.status==="Investigating" ? {$gte: req.query.end }: {$ne: null}},
             {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
         ]})
         let a = Math.floor(userTickets.length/ticketsPerPage)
@@ -193,6 +195,19 @@ router.get("/:id/:tab", auth, async (req, res) => {
         }
         res.status(200).send(obj)
     } catch (err) {
+        res.status(500).json(err)
+    }
+})
+
+router.get("/get-ticket", auth, async (req, res) => {
+    try {
+        const searchTicket = await tickets.findById(req.query.ticketid)
+        .populate({path:"userid", select:[ "displayimage", "email", "phone", "billingaddress"]})
+        .populate({path:"orderid", select:[ "amounttotal"]})
+
+        res.status(200).json(searchTicket)
+    }catch (err) {
+        console.log(err)
         res.status(500).json(err)
     }
 })
