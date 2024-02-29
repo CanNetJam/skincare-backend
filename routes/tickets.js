@@ -67,7 +67,6 @@ router.get("/all-tickets", auth, async (req, res) => {
         const userTicket = await tickets.find({$and: [
             {status: req.query.status!=="" ? req.query.status : {$ne: null}},
             {createdAt: {$gte: req.query.start, $lt: req.query.end}},
-            {expiresAt: req.query.status==="Investigating" ? {$gte: req.query.end }: {$ne: null}},
             {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
         ]})
         .skip(page*ticketsPerPage)
@@ -78,7 +77,6 @@ router.get("/all-tickets", auth, async (req, res) => {
         const userTickets = await tickets.find({$and: [
             {status: req.query.status!=="" ? req.query.status : {$ne: null}},
             {createdAt: {$gte: req.query.start, $lt: req.query.end}},
-            {expiresAt: req.query.status==="Investigating" ? {$gte: req.query.end }: {$ne: null}},
             {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
         ]})
         let a = Math.floor(userTickets.length/ticketsPerPage)

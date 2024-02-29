@@ -52,7 +52,7 @@ router.post("/register", async (req, res) => {
                     Hi ${props.firstname+" "+props.lastname},
                     <br/>
                     <br/>
-                    This email is sent to you in order to verify your email account that is registered to your account.
+                    This email is sent to you in order to verify your email address associated to your Klued account.
                     Click <a href=${"https://kluedskincare.com/#/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
                     <br/>
                     <br/>

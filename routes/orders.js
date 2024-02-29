@@ -63,7 +63,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                     images: [
                         `https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRbBKxt5HI8PaE2fAIIP5u-OqFltGY_1P_6DPnoAl6UmQ-TntY-Nun6aYpcESrlqAerxBA&usqp=CAU`
                     ],
-                    amount: (req.body.subtotal+req.body.shippingfee)*100>(300*100) ? Math.floor((obj.shippingfee-(obj.shippingfee*(req.body.discount/100)))*100) : obj.shippingfee*100,
+                    amount: obj.shippingfee*100,
                     name: 'Flash Express',
                     quantity: 1
                 })
