@@ -54,14 +54,15 @@ const ticketsSchema = new mongoose.Schema({
     response: {
         type: String    
     },
-    verdict: {
-        type: String    
-    },
     respondedAt: {
         type: Date    
     },
     expiresAt: {
         type: Date    
+    },
+    open: {
+        type: Boolean,
+        default: true    
     }
 }, { timestamps: true })
 

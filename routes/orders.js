@@ -254,7 +254,7 @@ router.post("/cancel-order/:id", auth, async (req, res) => {
                 billingstatus: "Cancelled",
                 refundedat: Date.now(),
                 deliverystatus: "Cancelled",
-                cancelreason: req.body.reason
+                reason: req.body.reason
             })
     
             if (ourData){
@@ -404,7 +404,7 @@ router.post("/update-order/:id", auth, async (req, res) => {
                     billingstatus: "Cancelled",
                     refundedat: Date.now(),
                     deliverystatus: req.body.status==="Returned to Seller" ? "Returned to Seller" : "Cancelled",
-                    cancelreason: req.body.reason
+                    reason: req.body.reason
                 })
         
                 if (ourData){

@@ -65,8 +65,9 @@ router.get("/all-tickets", auth, async (req, res) => {
         const page = req.query.page 
         const ticketsPerPage = req.query.limit
         const userTicket = await tickets.find({$and: [
-            {status: req.query.status!=="" ? req.query.status : {$ne: null}},
+            {status: req.query.status==="Investigating" ? "Investigating" : {$ne: "Investigating"}},
             {createdAt: {$gte: req.query.start, $lt: req.query.end}},
+            {expiresAt: req.query.status==="Ivestigating" ? {$gte: new Date.now()} : {$ne: null}},
             {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
         ]})
         .skip(page*ticketsPerPage)
@@ -75,8 +76,9 @@ router.get("/all-tickets", auth, async (req, res) => {
         .sort({createdAt: -1})
         
         const userTickets = await tickets.find({$and: [
-            {status: req.query.status!=="" ? req.query.status : {$ne: null}},
+            {status: req.query.status==="Investigating" ? "Investigating" : {$ne: "Investigating"}},
             {createdAt: {$gte: req.query.start, $lt: req.query.end}},
+            {expiresAt: req.query.status==="Ivestigating" ? {$gte: new Date.now()} : {$ne: null}},
             {_id: req.query.searchString.length===24 ? new ObjectId(req.query.searchString) : {$ne: null}}
         ]})
         let a = Math.floor(userTickets.length/ticketsPerPage)
@@ -122,14 +124,14 @@ router.post("/ticket-response/:id", auth, async (req, res) => {
 
                 axios.request(options)
                 .then(async function () {
-                    await tickets.findByIdAndUpdate({_id: req.params.id}, {status: req.body.status, respondedAt: Date.now(), response: req.body.reason})
+                    await tickets.findByIdAndUpdate({_id: req.params.id}, {status: req.body.status, respondedAt: Date.now(), response: req.body.reason, open: false})
                     res.status(200).send(true)
                 })
                 .catch(function (error) {
                     console.error(error)
                 })
             } else if (req.body.paymentoption==="COD") {
-                await tickets.findByIdAndUpdate({_id: req.params.id}, {status: req.body.status, respondedAt: Date.now(), response: req.body.reason})
+                await tickets.findByIdAndUpdate({_id: req.params.id}, {status: req.body.status, respondedAt: Date.now(), response: req.body.reason, open: false})
                 const ourData = await orders.findByIdAndUpdate({_id: req.body.orderid}, {
                     billingstatus: "Refunded",
                     refundedat: Date.now(),
@@ -148,7 +150,7 @@ router.post("/ticket-response/:id", auth, async (req, res) => {
                 res.status(200).send(true)
             }
         } else if (req.body.status==="Rejected") {
-            await tickets.findByIdAndUpdate({_id: req.params.id}, {status: req.body.status, respondedAt: Date.now(), response: req.body.reason})
+            await tickets.findByIdAndUpdate({_id: req.params.id}, {status: req.body.status, respondedAt: Date.now(), response: req.body.reason, open: false})
             res.status(200).send(true)
         }
     } catch (err) {
