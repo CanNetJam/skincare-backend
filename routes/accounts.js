@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
             port: 465, 
             secure: true, 
             auth: {
-                user: "trainingandpolicies@kluedskincare.com", 
+                user: "welcome@kluedskincare.com", 
                 pass: process.env.EMAIL_PASS, 
             },
             tls : { rejectUnauthorized: false }
@@ -42,39 +42,80 @@ router.post("/register", async (req, res) => {
         if (saveVerification) {
             let formattedDate = moment(saveVerification.expiration).format('MMMM Do YYYY, hh:mm A')
             await transporter.sendMail({
-                from: '<trainingandpolicies@kluedskincare.com>',
+                from: '"Klued" <welcome@kluedskincare.com>',
                 to: maillist,
                 cc: '',
                 subject: `Do Not Reply - Email Verification`,
                 html: `
-                <h4>Klued Email Account Verification</h4>
-                <p>
-                    Hi ${props.firstname+" "+props.lastname},
-                    <br/>
-                    <br/>
-                    This email is sent to you in order to verify your email address associated to your Klued account.
-                    Click <a href=${"https://kluedskincare.com/#/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
-                    <br/>
-                    <br/>
-                    This link will expire on <b>${formattedDate}</b>.
-                    <br/>
-                    <br/>
-                    <i>This is a system-generated email, please do not reply to this message.</i>
-                    <br/>
-                    <br/>
-                    Regards,
-                    <br/>
-                    <br/>
-                    <b>${req.body.type === "Customer" ? 'Klued' : 'Klued Employee Portal'}</b>
-                    <br/>
-                    <img src="kluedlogo@kluedskincare.com"/>'
-                </p>
+                <div style="font-family: Century Gothic, sans-serif;" width="100%">
+                    <div style="Margin:0 auto; max-width:750px;">
+                        <div style="display: none;">Successfully registered a klued account, please verify your email to activate the account and start using it.</div>
+                        <div width="100%" style="display:flex; justify-content:center;">
+                            <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="150" height="75"/></a>
+                        </div>    
+                        <div style="background-color:#3b82f6; width:100%;">
+                            <table style="Margin:0 auto;width:auto;padding:8px;">
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                        </td>
+                                        <td >
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                        </td>
+                                        <td >
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                        </td>
+                                        <td >
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="overflow: hidden; height:260px; width:100%">
+                            <img style="height:260px; width:100%; object-fit:cover; object-position: center;" src="http://drive.google.com/uc?export=view&id=1s-vFSLVZ7R2ya-cOuu4G3jku6DQk0mRo" alt="Klued Products" title="Klued Products"></img>
+                        </div>
+                        <br/>
+                        <p style="font-size: 26px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px; text-align:center"><b>Klued Email Account Verification</b></p>
+                        <p style="font-size: 16px;">
+                            Hi ${props.firstname+" "+props.lastname},
+                            <br/>
+                            <br/>
+                            This email is sent to you in order to verify your email address associated to your Klued account.
+                            Click <a href=${"https://kluedskincare.com/#/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
+                            <br/>
+                            <br/>
+                            This link will expire on <b>${formattedDate}</b>.
+                            <br/>
+                            <br/>
+                            <div style="font-size: 14px; width:100%; text-align:center;"><i>This is a system-generated email, please do not reply to this message.</i></div>
+                        </p>
+                        <br/>
+                        <div style="background-color:#1e293b; color:#94a3b8; padding-left: 25px;padding-right: 25px; padding-top: 15px;padding-bottom: 15px;">
+                            <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="100" height="45"/></a>
+                            <p>
+                                "Combining knowledge and passion to the skin"
+                            </p>
+                            <br/>
+                            <p style="font-size: 14px;">
+                                📍Address: 2nd Floor WANJ Bldg.<br/>
+                                Don Placido Campos Ave. Brgy. San Jose<br/>
+                                Dasmarinas, Cavite 4114<br/>
+                                📞 Mobile:09176680429<br/>
+                                💻 Website: https://kluedskincare.com
+                            </p>
+                            <p style="Margin:0 auto; width:auto;">© 2024 Klued. All rights reserved.</p>
+                        </div>
+                    </div>
+                    <div style="display: none;">[${Date.now()}] End of message.</div>
+                </div>
                 `, // Embedded image links to content ID
-                attachments: [{
-                filename: 'logo.png',
-                path: './src/logo.png',
-                cid: 'kluedlogo@kluedskincare.com' // Sets content ID
-                }]
+                // attachments: [{
+                // filename: 'logo.png',
+                // path: './src/logo.png',
+                // cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+                // }]
             })
 
             function makeid(length) {
@@ -103,41 +144,131 @@ router.post("/register", async (req, res) => {
             const saveVoucher = await vouchers.create(obj)
             let formattedVoucherDate = moment(saveVoucher.expiration).format('MMMM Do YYYY, hh:mm A')
             await transporter.sendMail({
-                from: '<trainingandpolicies@kluedskincare.com>',
+                from: '"Klued" <welcome@kluedskincare.com>',
                 to: maillist,
                 cc: '',
                 subject: `Do Not Reply - Free Voucher upon Registration`,
                 html: `
-                <h4>Klued 15% Voucher</h4>
-                <p>
-                    Hi ${props.firstname+" "+props.lastname},
-                    <br/>
-                    <br/>
-                    Thank you for taking you time on registering an account to Klued Skincare. Here is a free <b>15%</b> off voucher for you to use upon checkout. You just need to use the code below when you purchase at least ₱300.00 worth of Klued products.
-                    <br/>
-                    <br/>
-                    <span style="font-size: 30px;"<b>${voucher}</b></span>
-                    <br/>
-                    <br/>
-                    This voucher will expire on <b>${formattedVoucherDate}</b>.
-                    <br/>
-                    <br/>
-                    <i>This is a system-generated email, please do not reply to this message.</i>
-                    <br/>
-                    <br/>
-                    Regards,
-                    <br/>
-                    <br/>
-                    <b>${req.body.type === "Customer" ? 'Klued' : 'Klued Employee Portal'}</b>
-                    <br/>
-                    <img src="kluedlogo@kluedskincare.com"/>'
-                </p>
+                <div style="font-family: Century Gothic, sans-serif;" width="100%">
+                    <div style="Margin:0 auto; max-width:750px;">
+                        <div style="display: none;">Let's work together for your first checkout with this 15% off voucher!</div>
+                        <div width="100%" style="display:flex; justify-content:center;">
+                            <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="150" height="75"/></a>
+                        </div>    
+                        <div style="background-color:#3b82f6; width:100%;">
+                            <table style="Margin:0 auto;width:auto;padding:8px;">
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                        </td>
+                                        <td >
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                        </td>
+                                        <td >
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                        </td>
+                                        <td >
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="overflow: hidden; height:260px; width:100%">
+                            <img style="height:260px; width:100%; object-fit:cover; object-position: center;" src="http://drive.google.com/uc?export=view&id=1s-vFSLVZ7R2ya-cOuu4G3jku6DQk0mRo" alt="Klued Products" title="Klued Products"></img>
+                        </div>
+                        <br/>
+                        <p style="font-size: 26px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px; text-align:center"><b>Klued 15% Voucher</b></p>
+                        <div style="font-size: 16px; width:100%">
+                            Hi ${props.firstname+" "+props.lastname},
+                            <br/>
+                            <p style="text-align: justify;">
+                                Thank you for taking your time on registering an account to Klued Skincare. Here is a free <b>15%</b> off voucher for you to use upon checkout. Apply the code below when you purchase at least ₱300.00 worth of Klued products. This voucher will expire on <b>${formattedVoucherDate}</b>.
+                            </p>
+                            <br/>
+                            <div style="background-color:#e5e7eb; width:100%; padding-top: 30px;padding-bottom: 30px;">
+                                <p style="font-size: 48px; Margin:0 auto; width:200px; text-align:center"><b>${voucher}</b></p>
+                            </div>
+                            <div style="font-size: 14px; width:100%; text-align:center;"><i>This is a system-generated email, please do not reply to this message.</i></div>
+                        </div>
+                        <br/>
+                        <p style="Margin:0 auto; text-align: center; width: 100%;font-size: 22px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px;"><b>Check our Latest Products</b></p>
+                        <div style="width:100%;">
+                            <table style="Margin:0 auto;width:auto;padding:8px; gap:2px;">
+                                <tbody>
+                                    <tr>
+                                        <td style="max-width:32%; text-align: center; font-size: 16px">
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/product/658b84494c94654d802d8bc7"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1xjw0RT5vYwAueTCibVXWBwn_NwnU0tDs" alt="" title="" width="150" height="150"/></a>
+                                            <br/>
+                                            <b>Klued - Barrier Support Hydrating Jelly Cleanser</b>
+                                        </td>
+                                        <td style="max-width:32%; text-align: center; font-size: 16px">
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/product/658b815b4c94654d802d8bc0"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=11WnG-nVj02AWVHceJbPYEkrUXSu_JEjU" alt="" title="" width="150" height="150"/></a>
+                                            <br/>
+                                            <b>Klued - Multi-Brightening Complex Serum</b>
+                                        </td>
+                                        <td style="max-width:32%; text-align: center; font-size: 16px">
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/product/658b7bb1b6b310876eb11c5d"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1b71zBNPDpdIs_sosmKGiVGE_jlLAVva1" alt="" title="" width="150" height="150"/></a>
+                                            <br/>
+                                            <b>Klued - Multi-Hyaluronic Acid Complex Serum</b>    
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <br/>
+                        <br/>
+                        <p style="Margin:0 auto; text-align: center; width: 100%;font-size: 22px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px;"><b>Check our Popular Package Sets</b></p>
+                        <div style="width:100%;">
+                            <table style="Margin:0 auto;width:auto;padding:8px; gap:2px;">
+                                <tbody>
+                                    <tr>
+                                        <td style="max-width:32%; text-align: center; font-size: 16px">
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/package/658b89224c94654d802d8bdb"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=15FY0yN4MdrspriMHj5fPU8v3rZyRaC3I" alt="" title="" width="150" height="150"/></a>
+                                            <br/>
+                                            <b>Klued Oily/Acne Prone Skin SET</b>
+                                        </td>
+                                        <td style="max-width:32%; text-align: center; font-size: 16px">
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/package/658b8b2b4c94654d802d8bea"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1W41Bc2EsEt5mVCVqDs9LWim98Vhaww-n" alt="" title="" width="150" height="150"/></a>
+                                            <br/>
+                                            <b>Klued Anti-Aging Routine SET (for Beginners)</b>
+                                        </td>
+                                        <td style="max-width:32%; text-align: center; font-size: 16px">
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/package/658b8a5a4c94654d802d8be5"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=10aYRf_BNBTg9XJrqwe1QldKxCy2wx6ho" alt="" title="" width="150" height="150"/></a>
+                                            <br/>
+                                            <b>Klued Stubborn Dark spot and Hyperpigmentation SET</b>    
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <br/>
+                        <br/>
+                        <div style="background-color:#1e293b; color:#94a3b8; padding-left: 25px;padding-right: 25px; padding-top: 15px;padding-bottom: 15px;">
+                            <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="100" height="45"/></a>
+                            <p>
+                                "Combining knowledge and passion to the skin"
+                            </p>
+                            <br/>
+                            <p style="font-size: 14px;">
+                                📍Address: 2nd Floor WANJ Bldg.<br/>
+                                Don Placido Campos Ave. Brgy. San Jose<br/>
+                                Dasmarinas, Cavite 4114<br/>
+                                📞 Mobile:09176680429<br/>
+                                💻 Website: https://kluedskincare.com
+                            </p>
+                            <p style="Margin:0 auto; width:auto;">© 2024 Klued. All rights reserved.</p>
+                        </div>
+                    </div>
+                    <div style="display: none;">[${Date.now()}] End of message.</div>
+                </div>
                 `, // Embedded image links to content ID
-                attachments: [{
-                filename: 'logo.png',
-                path: './src/logo.png',
-                cid: 'kluedlogo@kluedskincare.com' // Sets content ID
-                }]
+                // attachments: [{
+                // filename: 'logo.png',
+                // path: './src/logo.png',
+                // cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+                // }]
             })
         }
         }
@@ -412,7 +543,7 @@ router.post("/update-account-info/:id", auth, async (req, res) => {
                 port: 465, 
                 secure: true, 
                 auth: {
-                user: "trainingandpolicies@kluedskincare.com", 
+                user: "welcome@kluedskincare.com", 
                 pass: process.env.EMAIL_PASS, 
                 },
                 tls : { rejectUnauthorized: false }
@@ -430,39 +561,79 @@ router.post("/update-account-info/:id", auth, async (req, res) => {
             if (saveVerification) {
             let formattedDate = moment(saveVerification.expiration).format('MMMM Do YYYY, hh:mm A')
             let info = await transporter.sendMail({
-                from: '<trainingandpolicies@kluedskincare.com>',
+                from: '"Klued" <welcome@kluedskincare.com>',
                 to: maillist,
                 cc: '',
                 subject: `Do Not Reply - Email Update Verification`,
                 html: `
-                <h4>Klued Email Update Verification</h4>
-                <p>
-                    Hi ${props.firstname+" "+props.lastname},
-                    <br/>
-                    <br/>
-                    This email is sent to you in order to verify your new email address that is updated in your account.
-                    Click <a href=${"https://kluedskincare.com/#/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
-                    <br/>
-                    <br/>
-                    This link will expire on <b>${formattedDate}</b>.
-                    <br/>
-                    <br/>
-                    <i>This is a system-generated email, please do not reply to this message.</i>
-                    <br/>
-                    <br/>
-                    Regards,
-                    <br/>
-                    <br/>
-                    <b>Klued Employee Portal</b>
-                    <br/>
-                    <img src="kluedlogo@kluedskincare.com"/>'
-                </p>
+                <div style="font-family: Century Gothic, sans-serif;" width="100%">
+                    <div style="Margin:0 auto; max-width:750px;">
+                        <div style="display: none;">Successfully updated thee email of your Klued account, please verify the new email to activate the account and start using it.</div>
+                        <div width="100%" style="display:flex; justify-content:center;">
+                            <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="150" height="75"/></a>
+                        </div>    
+                        <div style="background-color:#3b82f6; width:100%;">
+                            <table style="Margin:0 auto;width:auto;padding:8px;">
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                        </td>
+                                        <td >
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                        </td>
+                                        <td >
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                        </td>
+                                        <td >
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div style="overflow: hidden; height:260px; width:100%">
+                            <img style="height:260px; width:100%; object-fit:cover; object-position: center;" src="http://drive.google.com/uc?export=view&id=1s-vFSLVZ7R2ya-cOuu4G3jku6DQk0mRo" alt="Klued Products" title="Klued Products"></img>
+                        </div>
+                        <br/>
+                        <p style="font-size: 26px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px; text-align:center"><b>Klued Email Update Verification</b></p>
+                        <p style="font-size: 16px;">
+                            Hi ${props.firstname+" "+props.lastname},
+                            <br/>
+                            <br/>
+                            This email is sent to you in order to verify your new email address that is updated in your account.
+                            Click <a href=${"https://kluedskincare.com/#/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
+                            <br/>
+                            <br/>
+                            This link will expire on <b>${formattedDate}</b>.
+                            <br/>
+                            <br/>
+                            <div style="font-size: 14px; width:100%; text-align:center;"><i>This is a system-generated email, please do not reply to this message.</i></div>
+                        </p>
+                        <br/>
+                        <div style="background-color:#1e293b; color:#94a3b8; padding-left: 25px;padding-right: 25px; padding-top: 15px;padding-bottom: 15px;">
+                            <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="100" height="45"/></a>
+                            <p>
+                                "Combining knowledge and passion to the skin"
+                            </p>
+                            <br/>
+                            <p style="font-size: 14px;">
+                                📍Address: 2nd Floor WANJ Bldg.<br/>
+                                Don Placido Campos Ave. Brgy. San Jose<br/>
+                                Dasmarinas, Cavite 4114<br/>
+                                📞 Mobile:09176680429<br/>
+                                💻 Website: https://kluedskincare.com
+                            </p>
+                            <p style="Margin:0 auto; width:auto;">© 2024 Klued. All rights reserved.</p>
+                        </div>
+                    </div>
+                </div>
                 `, // Embedded image links to content ID
-                attachments: [{
-                    filename: 'logo.png',
-                    path: './src/logo.png',
-                    cid: 'kluedlogo@kluedskincare.com' // Sets content ID
-                }]
+                // attachments: [{
+                //     filename: 'logo.png',
+                //     path: './src/logo.png',
+                //     cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+                // }]
             })
             }
         }
@@ -531,7 +702,7 @@ router.post("/reset-password/:email", async (req, res) => {
                 port: 465, 
                 secure: true, 
                 auth: {
-                    user: "trainingandpolicies@kluedskincare.com", 
+                    user: "welcome@kluedskincare.com", 
                     pass: process.env.EMAIL_PASS, 
                 },
                 tls : { rejectUnauthorized: false }
@@ -539,42 +710,82 @@ router.post("/reset-password/:email", async (req, res) => {
             
             // http://localhost:5173/#/login
             let info = await transporter.sendMail({
-                    from: '<trainingandpolicies@kluedskincare.com>',
+                    from: '"Klued" <welcome@kluedskincare.com>',
                     to: maillist,
                     cc: '',
                     subject: `Do Not Reply - Account Password Reset`,
                     html: `
-                    <h4>Employee Portal Account Password Reset</h4>
-                    <p>
-                        Hi ${updatedAccount.firstname+" "+updatedAccount.lastname},
-                        <br/>
-                        <br/>
-                        This email is sent to you in order to help you recover your Klued Account. 
-                        Your password is now reset to <b>${randomNum}</b>. Use this to login on the Klued Employee Portal.
-                        <br/>
-                        <br/>
-                        <b>Note:</b> This password is not secure, please change it immediately.
-                        <br/>
-                        <br/>
-                        Click <a href="https://kluedskincare.com/login">here</a> to head over the website.
-                        <br/>
-                        <br/>
-                        <i>This is a system-generated email, please do not reply to this message.</i>
-                        <br/>
-                        <br/>
-                        Regards,
-                        <br/>
-                        <br/>
-                        <b>Klued Employee Portal</b>
-                        <br/>
-                        <img src="kluedlogo@kluedskincare.com"/>'
-                    </p>
+                    <div style="font-family: Century Gothic, sans-serif;" width="100%">
+                        <div style="Margin:0 auto; max-width:750px;">
+                            <div style="display: none;">Your password is successfully reset. Head over to kluedskincare.com to login into your account.</div>
+                            <div width="100%" style="display:flex; justify-content:center;">
+                                <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto; background-image:#000000" src=${"http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" || "kluedlogo@kluedskincare.com"} alt="Logo" title="Klued Logo" width="150" height="75"/></a>
+                            </div>    
+                            <div style="background-color:#3b82f6; width:100%;">
+                                <table style="Margin:0 auto;width:auto;padding:8px;">
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                            </td>
+                                            <td >
+                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                            </td>
+                                            <td >
+                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                            </td>
+                                            <td >
+                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style="overflow: hidden; height:260px; width:100%">
+                                <img style="height:260px; width:100%; object-fit:cover; object-position: center;" src="http://drive.google.com/uc?export=view&id=1s-vFSLVZ7R2ya-cOuu4G3jku6DQk0mRo" alt="Klued Products" title="Klued Products"></img>
+                            </div>
+                            <br/>
+                            <p style="font-size: 26px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px; text-align:center"><b>Account Password Reset</b></p>
+                            <p style="font-size: 16px;">
+                                Hi ${updatedAccount.firstname+" "+updatedAccount.lastname},
+                                <br/>
+                                <br/>
+                                This email is sent to you in order to help you recover your Klued Account. 
+                                Your password is now reset to <b>${randomNum}</b>. Use this to login on the Klued account. Click <a href="https://kluedskincare.com/#/login">here</a> to head over the website.
+                                <br/>
+                                <br/>
+                                <b>Note:</b> This password is not secure, please change it immediately.
+                                <br/>
+                                <br/>
+                                <div style="font-size: 14px; width:100%; text-align:center;"><i>This is a system-generated email, please do not reply to this message.</i></div>
+                            </p>
+                            <br/>
+                            <div style="background-color:#1e293b; color:#94a3b8; padding-left: 25px;padding-right: 25px; padding-top: 15px;padding-bottom: 15px;">
+                                <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="100" height="45"/></a>
+                                <p>
+                                    "Combining knowledge and passion to the skin"
+                                </p>
+                                <br/>
+                                <p style="font-size: 14px;">
+                                    📍Address: 2nd Floor WANJ Bldg.<br/>
+                                    Don Placido Campos Ave. Brgy. San Jose<br/>
+                                    Dasmarinas, Cavite 4114<br/>
+                                    📞 Mobile:09176680429<br/>
+                                    💻 Website: https://kluedskincare.com
+                                </p>
+                                <p style="Margin:0 auto; width:auto;">© 2024 Klued. All rights reserved.</p>
+                            </div>
+                        </div>
+                        <div style="display: none;">[${Date.now()}] End of message.</div>
+                    </div>
                     `, // Embedded image links to content ID
-                    attachments: [{
-                    filename: 'logo.png',
-                    path: './src/logo.png',
-                    cid: 'kluedlogo@kluedskincare.com' // Sets content ID
-                    }]
+                    attachments: [
+                        {
+                            filename: 'logo.png',
+                            path: './src/logo.png',
+                            cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+                        }
+                    ]
             })
             }
             res.status(200).json("Please check your email for the temporary password.")

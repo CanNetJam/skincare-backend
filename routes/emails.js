@@ -92,41 +92,82 @@ router.post("/send-policy-email", auth, async (req, res) => {
         })
 
         let info = await transporter.sendMail({
-            from: '<trainingandpolicies@kluedskincare.com>',
+            from: '"Klued" <trainingandpolicies@kluedskincare.com>',
             to: maillist,
             cc: '',
             subject: `Do Not Reply - ${req.body.fullname+"'s "}Internal Policy Email Confirmation`,
             html: `
-            <h4>Klued Internal Policy Email Confirmation</h4>
-            <p>
-                Hi ${req.body.fullname},
-                <br/>
-                <br/>
-                This email is sent to you in order to confirm that you signed, understood and agreed in the following:
-                <br/>
-                <br/>
-                <b>${policyText}</b>
-                <br/>
-                <br/>
-                on <b>${req.body.date}</b>.
-                <br/>
-                <br/>
-                <i>This is a system-generated email, please do not reply to this message.</i>
-                <br/>
-                <br/>
-                Regards,
-                <br/>
-                <br/>
-                <b>Klued Human Resource Department</b>
-                <br/>
-                <img src="kluedlogo@kluedskincare.com"/>'
-            </p>
+            <div style="font-family: Century Gothic, sans-serif;" width="100%">
+                <div style="Margin:0 auto; max-width:750px;">
+                    <div style="display: none;">Here is a proof that you signed, understood and agreed a policy og Klued Skincare Products Trading.</div>
+                    <div width="100%" style="display:flex; justify-content:center;">
+                        <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="150" height="75"/></a>
+                    </div>    
+                    <div style="background-color:#3b82f6; width:100%;">
+                        <table style="Margin:0 auto;width:auto;padding:8px;">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                    </td>
+                                    <td >
+                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                    </td>
+                                    <td >
+                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                    </td>
+                                    <td >
+                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="overflow: hidden; height:260px; width:100%">
+                        <img style="height:260px; width:100%; object-fit:cover; object-position: center;" src="http://drive.google.com/uc?export=view&id=1s-vFSLVZ7R2ya-cOuu4G3jku6DQk0mRo" alt="Klued Products" title="Klued Products"></img>
+                    </div>
+                    <br/>
+                    <p style="font-size: 26px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px; text-align:center"><b>Klued Internal Policy Email Confirmation</b></p>
+                    <p style="font-size: 16px;">
+                        Hi ${req.body.fullname},
+                        <br/>
+                        <br/>
+                        This email is sent to you in order to confirm that you signed, understood and agreed in the following:
+                        <br/>
+                        <br/>
+                        <b>${policyText}</b>
+                        <br/>
+                        <br/>
+                        on <b>${req.body.date}</b>.
+                        <br/>
+                        <br/>
+                        <div style="font-size: 14px; width:100%; text-align:center;"><i>This is a system-generated email, please do not reply to this message.</i></div>
+                    </p>
+                    <br/>
+                    <div style="background-color:#1e293b; color:#94a3b8; padding-left: 25px;padding-right: 25px; padding-top: 15px;padding-bottom: 15px;">
+                        <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="100" height="45"/></a>
+                        <p>
+                            "Combining knowledge and passion to the skin"
+                        </p>
+                        <br/>
+                        <p style="font-size: 14px;">
+                            📍Address: 2nd Floor WANJ Bldg.<br/>
+                            Don Placido Campos Ave. Brgy. San Jose<br/>
+                            Dasmarinas, Cavite 4114<br/>
+                            📞 Mobile:09176680429<br/>
+                            💻 Website: https://kluedskincare.com
+                        </p>
+                        <p style="Margin:0 auto; width:auto;">© 2024 Klued. All rights reserved.</p>
+                    </div>
+                </div>
+                <div style="display: none;">[${Date.now()}] End of message.</div>
+            </div>
             `, // Embedded image links to content ID
-            attachments: [{
-              filename: 'logo.png',
-              path: './src/logo.png',
-              cid: 'kluedlogo@kluedskincare.com' // Sets content ID
-            }]
+            // attachments: [{
+            //   filename: 'logo.png',
+            //   path: './src/logo.png',
+            //   cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+            // }]
         })
         res.status(200).json(true)
     }catch (err) {
