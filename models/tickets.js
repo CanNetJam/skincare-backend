@@ -8,7 +8,7 @@ const ticketsSchema = new mongoose.Schema({
     userid: {
         type: mongoose.Schema.Types.ObjectId, ref: accounts
     },
-    item: { 
+    items: [{
         product: {
             type: mongoose.Schema.Types.ObjectId,
             required: true,
@@ -20,7 +20,7 @@ const ticketsSchema = new mongoose.Schema({
         price: {type: Number},
         quantity: {type: Number},
         type: {type: String}
-    },
+    }],
     transactionfee: {
         type: Number
     },

@@ -190,8 +190,12 @@ router.post("/register", async (req, res) => {
                             <div style="background-color:#e5e7eb; width:100%; padding-top: 30px;padding-bottom: 30px;">
                                 <p style="font-size: 48px; Margin:0 auto; width:200px; text-align:center"><b>${voucher}</b></p>
                             </div>
+                            <br/>
                             <div style="font-size: 14px; width:100%; text-align:center;"><i>This is a system-generated email, please do not reply to this message.</i></div>
                         </div>
+                        <br/>
+                        <br/>
+                        <br/>
                         <br/>
                         <p style="Margin:0 auto; text-align: center; width: 100%;font-size: 22px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px;"><b>Check our Latest Products</b></p>
                         <div style="width:100%;">
@@ -708,7 +712,6 @@ router.post("/reset-password/:email", async (req, res) => {
                 tls : { rejectUnauthorized: false }
             })
             
-            // http://localhost:5173/#/login
             let info = await transporter.sendMail({
                     from: '"Klued" <welcome@kluedskincare.com>',
                     to: maillist,
@@ -779,13 +782,13 @@ router.post("/reset-password/:email", async (req, res) => {
                         <div style="display: none;">[${Date.now()}] End of message.</div>
                     </div>
                     `, // Embedded image links to content ID
-                    attachments: [
-                        {
-                            filename: 'logo.png',
-                            path: './src/logo.png',
-                            cid: 'kluedlogo@kluedskincare.com' // Sets content ID
-                        }
-                    ]
+                    // attachments: [
+                    //     {
+                    //         filename: 'logo.png',
+                    //         path: './src/logo.png',
+                    //         cid: 'kluedlogo@kluedskincare.com' // Sets content ID
+                    //     }
+                    // ]
             })
             }
             res.status(200).json("Please check your email for the temporary password.")
@@ -936,6 +939,15 @@ router.post("/combine-cart/:id", auth, async (req, res) => {
     } catch (err) {
         res.status(500).json(err)
         console.log(err)
+    }
+})
+
+router.post("/deactivate-account/:id", async (req, res) => {
+    try {
+        const acc = await accounts.findByIdAndUpdate({_id: req.params.id}, {deactivated: true})
+        res.status(200).json(acc)
+    } catch (err) {
+        res.status(500).json(err)
     }
 })
 

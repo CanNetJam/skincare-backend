@@ -33,7 +33,19 @@ const productSchema = new mongoose.Schema({
     },
     extra: {
         type: String,
-    }
+    },
+    variation: [ 
+        { 
+            name: { type: String },
+            options: [
+                {
+                    title: { type: String },
+                    image: { type: String },
+                    description: { type: String },
+                }
+            ],
+        },
+    ]
 }, { timestamps: true })
 
 module.exports= mongoose.model("product", productSchema)

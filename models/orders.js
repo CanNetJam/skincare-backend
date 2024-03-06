@@ -29,10 +29,6 @@ const ordersSchema = new mongoose.Schema({
             withticket: {
                 type: Boolean,
                 default: false
-            },
-            reviewed: {
-                type: Boolean,
-                default: false
             }
         }
     ],
@@ -108,8 +104,15 @@ const ordersSchema = new mongoose.Schema({
         type: Number
     },
     discountid: {
+        type: mongoose.Schema.Types.ObjectId, ref: "vouchers"
+    },
+    reviewed: {
+        type: Boolean,
+        default: false
+    },
+    ticketid: {
         type: String
-    }
+    },
 }, { timestamps: true })
 
 module.exports= mongoose.model("orders", ordersSchema)

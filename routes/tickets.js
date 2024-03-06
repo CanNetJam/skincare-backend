@@ -10,7 +10,16 @@ const { ObjectId } = require ("mongodb");
 
 router.post("/submit-ticket", auth, async (req, res) => {
     try {
-        const itemFocus = JSON.parse(req.body.item)
+        const itemFocus = JSON.parse(req.body.items)
+        filteredItems = itemFocus.map((a)=> {
+            return {
+                product: a.item._id,
+                name: a.item.name,
+                price: a.price,
+                quantity: a.quantity,
+                type: a.type
+            }
+        })
         const obj = {
             orderid: req.body.orderid,
             userid: req.body.userid,
@@ -23,35 +32,12 @@ router.post("/submit-ticket", auth, async (req, res) => {
             productimage2: req.body.productimage2,
             status: "Investigating",
             transactionfee: req.body.transactionfee,
-            item: {
-                product: itemFocus.item._id,
-                name: itemFocus.item.name,
-                price: itemFocus.price,
-                quantity: req.body.itemquantity,
-                type: itemFocus.type
-            },
+            items: filteredItems,
             expiresAt: Date.now() + 172800000
         }
         const submitTicket = await tickets.create(obj)
         if (submitTicket) {
-            const theOrder = await orders.findById({_id: obj.orderid})
-            let newItems = []
-            let oldItems = theOrder.items
-            for (let i=0; i<oldItems.length; i++) {
-                if (JSON.stringify(oldItems[i].item)===JSON.stringify(obj.item.product)) {    
-                    newItems.push({
-                        withticket: true,
-                        item: oldItems[i].item,
-                        price: oldItems[i].price,
-                        quantity: oldItems[i].quantity,
-                        type: oldItems[i].type,
-                        _id: oldItems[i]._id
-                    })
-                } else {
-                    newItems.push(oldItems[i])
-                }
-            }
-            await orders.findByIdAndUpdate({_id: obj.orderid}, {items: newItems })
+            await orders.findByIdAndUpdate({_id: obj.orderid}, {reviewed: true, ticketid: submitTicket._id })
         }
         res.status(200).json(true)
     } catch (err) {
@@ -72,7 +58,7 @@ router.get("/all-tickets", auth, async (req, res) => {
         ]})
         .skip(page*ticketsPerPage)
         .limit(ticketsPerPage)
-        .populate({path:"orderid", select:["deliverystatus", "items", "paymentoption", "billingstatus", "deliverystatus", "amounttotal", "amountpaid", "createdAt", "paidat", "paymentid", "netamount"]})
+        .populate({path:"orderid", select:["deliverystatus", "items", "paymentoption", "billingstatus", "deliverystatus", "amounttotal", "amountpaid", "createdAt", "paidat", "paymentid", "netamount", "shippingfee", "transactionfee"]})
         .sort({createdAt: -1})
         
         const userTickets = await tickets.find({$and: [
