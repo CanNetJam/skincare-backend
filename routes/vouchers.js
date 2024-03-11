@@ -78,7 +78,8 @@ router.post("/generate-vouchers", auth, async (req, res) => {
                     minimum: req.body.minimum,
                     maximum: 100,
                     expiration: Date.now() + 259200000,
-                    status: "Unused"
+                    status: "Unused",
+                    discounttype: req.body.percentage==='true' ? "Percentage" : "Flat"
                 }
                 const saveVoucher = await vouchers.create(obj)
                 let formattedVoucherDate = moment(saveVoucher.expiration).format('MMMM Do YYYY, hh:mm A')
@@ -86,11 +87,11 @@ router.post("/generate-vouchers", auth, async (req, res) => {
                     from: '"Klued" <welcome@kluedskincare.com>',
                     to: maillist[i],
                     cc: '',
-                    subject: `Do Not Reply - Free Voucher upon Registration`,
+                    subject: `Do Not Reply - Voucher Distribution`,
                     html: `
                     <div style="font-family: Century Gothic, sans-serif;" width="100%">
                         <div style="Margin:0 auto; max-width:750px;">
-                            <div style="display: none;">Let's work together for your first checkout with this ${req.body.discount}% off voucher!</div>
+                            <div style="display: none;">Let's work together for your first checkout with this ${req.body.percentage==='true' ? req.body.discount+'%': '₱'+req.body.discount+'.00'} off voucher!</div>
                             <div width="100%" style="display:flex; justify-content:center;">
                                 <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="150" height="75"/></a>
                             </div>    
@@ -118,12 +119,12 @@ router.post("/generate-vouchers", auth, async (req, res) => {
                                 <img style="height:260px; width:100%; object-fit:cover; object-position: center;" src="http://drive.google.com/uc?export=view&id=1s-vFSLVZ7R2ya-cOuu4G3jku6DQk0mRo" alt="Klued Products" title="Klued Products"></img>
                             </div>
                             <br/>
-                            <p style="font-size: 26px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px; text-align:center"><b>Klued ${req.body.discount}% Voucher</b></p>
+                            <p style="font-size: 26px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px; text-align:center"><b>Klued ${req.body.percentage==='true' ? req.body.discount+'%': '₱'+req.body.discount+'.00'} Voucher</b></p>
                             <div style="font-size: 16px; width:100%">
                                 Hi ${foundId ? foundId.firstname+" "+foundId.lastname : 'Klued Nerdie'},
                                 <br/>
                                 <p style="text-align: justify;">
-                                    Thank you for taking your time on registering an account to Klued Skincare. Here is a free <b>${req.body.discount}%</b> off voucher for you to use upon checkout. Apply the code below when you purchase at least ₱${req.body.minimum}.00 worth of Klued products. This voucher will expire on <b>${formattedVoucherDate}</b>.
+                                    Thank you for taking your time on registering an account to Klued Skincare. Here is a free <b>${req.body.percentage==='true' ? req.body.discount+'%': '₱'+req.body.discount+'.00'}</b> off voucher for you to use upon checkout. Apply the code below when you purchase at least ₱${req.body.minimum}.00 worth of Klued products. This voucher will expire on <b>${formattedVoucherDate}</b>.
                                 </p>
                                 <br/>
                                 <div style="background-color:#e5e7eb; width:100%; padding-top: 30px;padding-bottom: 30px;">
@@ -220,6 +221,29 @@ router.post("/generate-vouchers", auth, async (req, res) => {
         return res.status(200).send(true)
     } catch (err) {
         res.status(500).send(err)
+    }
+})
+
+router.get("/all-vouchers", auth, async (req, res) => {
+    try {
+        const allVoucher = await vouchers.find({$and: [ {encryptedvoucher: new RegExp(req.query.searchString, 'i')}]}).sort({createdAt: -1})
+        res.status(200).json(allVoucher)
+    }catch (err) {
+        console.log(err)
+        res.status(500).json(err)
+    }
+})
+
+router.post("/update-voucher/:id", auth, async (req, res) =>{
+    try {
+        const obj = {
+            status: req.body.status, 
+            expiration: req.body.expiration,
+        }
+        const updateVoucher = await vouchers.findByIdAndUpdate({ _id: req.params.id}, {$set: obj})
+        res.status(200).json(updateVoucher)
+    } catch (err) {
+        res.status(500).json(err)
     }
 })
 

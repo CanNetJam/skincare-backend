@@ -4,10 +4,16 @@ const vouchersSchema = new mongoose.Schema({
     userid: { 
         type: mongoose.Schema.Types.ObjectId, ref: "accounts"
     },
+    orderid: { 
+        type: mongoose.Schema.Types.ObjectId, ref: "orders"
+    },
     encryptedvoucher: {
         type: String,
     },
     type: {
+        type: String,
+    },
+    discounttype: {
         type: String,
     },
     amount: {

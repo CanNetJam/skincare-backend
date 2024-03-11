@@ -8,6 +8,8 @@ const cloudinary = require('cloudinary').v2
 router.get("/get-all-products", async (req, res) => {
     try {
         const allProduct = await product.find()
+        .populate({path:"relatedproducts", select:["name"]})
+        .sort({createdAt: -1})
         res.status(200).json(allProduct)
     }catch (err) {
         console.log(err)
@@ -18,6 +20,7 @@ router.get("/get-all-products", async (req, res) => {
 router.get("/get-product", async (req, res) => {
     try {
         const searchProduct = await product.findById(req.query.productid)
+        .populate({path:"relatedproducts", select:["name", "displayimage", "disprice", "price", "stock"]})
         res.status(200).json(searchProduct)
     }catch (err) {
         console.log(err)
@@ -26,6 +29,16 @@ router.get("/get-product", async (req, res) => {
 })
 
 router.post("/create-product", async (req, res) => {
+    // let variations = JSON.parse(req.body.variations)
+    // let newVariations = []
+    // for (let i=0; i<variations.length; i++){
+    //     let varr = variations[i].options
+    //     varr = variations[i].options.map((a, index)=> {
+    //         return {...a, image: eval(`req.body.${variations[i].name}[${index}]`), origprice: Number(a.origprice), price: Number(a.price), stock: Number(a.stock)}
+    //     })
+    //     newVariations.push({...variations[i], options: varr})
+    // }
+
     let newIngredients = JSON.parse(req.body.ingredients)
     if (req.body?.ingphoto){
         if (req.body.ingphoto[0]!==undefined) {
@@ -55,7 +68,9 @@ router.post("/create-product", async (req, res) => {
             do: JSON.parse(req.body.do),
             dont: JSON.parse(req.body.dont),
             moreimage: req.body.moreimage,
-            routines: JSON.parse(req.body.routines)
+            routines: JSON.parse(req.body.routines),
+            videos: req.body.prodvid
+            //variation: newVariations
         }
         const newProduct = await product.create(obj)
         res.status(200).json(newProduct)
@@ -94,7 +109,9 @@ router.post("/update-product", async (req, res) => {
             do: JSON.parse(req.body.do),
             dont: JSON.parse(req.body.dont),
             moreimage: req.body.moreimage,
-            routines: JSON.parse(req.body.routines)
+            routines: JSON.parse(req.body.routines),
+            videos: req.body.prodvid,
+            relatedproducts: JSON.parse(req.body.relatedproducts)
         }
         const info = await product.findByIdAndUpdate({ _id: new ObjectId(req.body._id) }, {$set: obj})
 
@@ -119,6 +136,16 @@ router.post("/update-product", async (req, res) => {
                 }
             }
         }
+        
+        if (info.videos[0]!==undefined && req.body.prodvid!==undefined) {
+            for(let i = 0; i<info.videos.length; i++){
+                if (info.videos[i]!==req.body.prodvid[i]) {
+                    //console.log(info.videos[i]+" a video is deleted")
+                    cloudinary.uploader.destroy(info.videos[i])
+                }
+            }
+        }
+
         res.status(200).json(true)
     }catch (err) {
         console.log(err)

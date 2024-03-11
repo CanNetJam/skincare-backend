@@ -34,17 +34,12 @@ const productSchema = new mongoose.Schema({
     extra: {
         type: String,
     },
-    variation: [ 
-        { 
-            name: { type: String },
-            options: [
-                {
-                    title: { type: String },
-                    image: { type: String },
-                    description: { type: String },
-                }
-            ],
-        },
+    videos: {
+        type: Array,
+        default: []
+    },
+    relatedproducts: [ 
+        { type: mongoose.Schema.Types.ObjectId, ref: "product"},
     ]
 }, { timestamps: true })
 

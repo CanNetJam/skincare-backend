@@ -139,7 +139,8 @@ router.post("/register", async (req, res) => {
                 minimum: 300,
                 maximum: 100,
                 expiration: Date.now() + 259200000,
-                status: "Unused"
+                status: "Unused",
+                discounttype: "Percentage"
             }
             const saveVoucher = await vouchers.create(obj)
             let formattedVoucherDate = moment(saveVoucher.expiration).format('MMMM Do YYYY, hh:mm A')

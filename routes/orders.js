@@ -37,22 +37,31 @@ router.post("/submit-order/:id", auth, async (req, res) => {
             deliverystatus: "Seller Processing",
             codeused: "",
             shippingfee: req.body.shippingfee,
-            discount: (req.body.subtotal+req.body.shippingfee)*100>(300*100) ? req.body.discount : 0,
-            discountid: (req.body.subtotal+req.body.shippingfee)*100>(300*100) ? req.body.discountid : ''
+            discount: req.body.discount,
+            discountid: req.body.discountid,
+            discounttype: req.body.discounttype,
+            discountcode: req.body.discountcode
         }
 
         const addOrder = await orders.create(obj)
         if (addOrder) {
             if (addOrder.paymentoption!=="COD") {
                 let destructuredCart = []
-
+                let perItemDiscount = Math.round(obj.discount/obj.items.length)
                 obj.items.map((a)=> {
                     destructuredCart.push({
                         currency: 'PHP',
                         images: [
                             `https://res.cloudinary.com/drjkqwabe/image/upload/f_auto,q_50/${a.product.displayimage}.jpg`
                         ],
-                        amount: (req.body.subtotal+req.body.shippingfee)*100>(300*100) ? Math.floor((a.price-(a.price*(req.body.discount/100)))*100) : a.price*100,
+                        amount: 
+                        obj.discount!==0 ? 
+                            obj.discounttype==="Percentage" ? 
+                                Math.floor((a.price-(a.price*(req.body.discount/100)))*100) 
+                            : 
+                                (a.price-Math.round(perItemDiscount/a.quantity))*100
+                        :   a.price*100
+                        ,
                         name: a.product.name,
                         description: a.item,
                         quantity: a.quantity
@@ -109,11 +118,11 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                                 show_description: true,
                                 show_line_items: true,
                                 reference_number: addOrder._id,
-                                cancel_url: `${false ? 'http://localhost:5173/' : 'https://kluedskincare.com/'}#/cartdetails`,
+                                cancel_url: `${true ? 'https://skincare-frontend.onrender.com' : 'https://kluedskincare.com/'}#/cartdetails`,
                                 description: `Klued product order checkout paid through ${obj.paymentoption}`,
                                 line_items: destructuredCart,
                                 payment_method_types: [truePayment],
-                                success_url: `${false ? 'http://localhost:5173/' : 'https://kluedskincare.com/'}`,
+                                success_url: `${true ? 'https://skincare-frontend.onrender.com' : 'https://kluedskincare.com/'}`,
                                 metadata: {
                                     customer_number: req.params.id,
                                     deliveryoption: obj.deliveryoption,
@@ -135,7 +144,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                     })
             } else if (addOrder.paymentoption==="COD") {
                 if (addOrder.discountid!==''){
-                    await vouchers.findByIdAndUpdate({_id: addOrder.discountid}, {status: "Used"})
+                    await vouchers.findByIdAndUpdate({_id: addOrder.discountid}, {status: "Used", orderid: addOrder._id})
                 }
                 const ourData = await orders.findByIdAndUpdate({_id: addOrder._id}, {
                     billingstatus: "COD", 
@@ -166,7 +175,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
 router.post("/checkout_webhook", async (req, res) => {
     if (req.body.data.attributes.type==='payment.paid'){
         if(req.body.data.attributes.data.attributes.metadata.discount_id!==''){
-            await vouchers.findByIdAndUpdate({_id: req.body.data.attributes.data.attributes.metadata.discount_id}, {status: "Used"})
+            await vouchers.findByIdAndUpdate({_id: req.body.data.attributes.data.attributes.metadata.discount_id}, {status: "Used", orderid: req.body.data.attributes.data.attributes.metadata.order_id})
         }
         const ourData = await orders.findByIdAndUpdate({_id: req.body.data.attributes.data.attributes.metadata.order_id}, {
             billingstatus: "Paid", 

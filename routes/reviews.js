@@ -54,7 +54,7 @@ router.post("/submit-review", auth, async (req, res) => {
     }
 })
 
-router.get("/:id", async (req, res) => {
+router.get("/get-reviews", async (req, res) => {
     try {
         const rawsort = req.query.sortBy
         function interpret(a) {
@@ -74,9 +74,17 @@ router.get("/:id", async (req, res) => {
 
         const page = req.query.page 
         const reviewsPerPage = req.query.limit
+        let sortedProductList = []
+        for (let i=0; i<req.query?.productlist?.length; i++){
+            if (typeof req.query.productlist[i]==="string") {
+                sortedProductList.push(new ObjectId(req.query.productlist[i]))
+            } else {
+                sortedProductList.push(new ObjectId(req.query.productlist[i]._id))
+            }
+        }
 
         const orderReview = await reviews.find({$and: [
-            {'product.productid': new ObjectId(req.params.id)},
+            {'product.productid': {$in: sortedProductList} },
             {rating: req.query.filterBy!=='' ? req.query.filterBy : {$ne: null}}
         ]})
         .skip(page*reviewsPerPage)
@@ -85,12 +93,12 @@ router.get("/:id", async (req, res) => {
         .sort({[sort.b]: sort.c})
 
         const orderReviews = await reviews.find({$and: [
-            {'product.productid': new ObjectId(req.params.id)},
+            {'product.productid': {$in: sortedProductList} },
             {rating: req.query.filterBy!=='' ? req.query.filterBy : {$ne: null}}
         ]})
 
         const allReviews = await reviews.find({$and: [
-            {'product.productid': new ObjectId(req.params.id)},
+            {'product.productid': {$in: sortedProductList} },
         ]})
 
         let a = Math.floor(orderReviews.length/reviewsPerPage)
@@ -99,30 +107,30 @@ router.get("/:id", async (req, res) => {
         if (b!==0) {
             a=a+1
         }
-
+        
         const fiveRating = await reviews.find({$and: [
-            {'product.productid': new ObjectId(req.params.id)},
+            {'product.productid': {$in: sortedProductList} },
             { rating: 5}
         ]})
         const fourRating = await reviews.find({$and: [
-            {'product.productid': new ObjectId(req.params.id)},
+            {'product.productid': {$in: sortedProductList} },
             { rating: 4}
         ]})
         const threeRating = await reviews.find({$and: [
-            {'product.productid': new ObjectId(req.params.id)},
+            {'product.productid': {$in: sortedProductList} },
             { rating: 3}
         ]})
         const twoRating = await reviews.find({$and: [
-            {'product.productid': new ObjectId(req.params.id)},
+            {'product.productid': {$in: sortedProductList} },
             { rating: 2}
         ]})
         const oneRating = await reviews.find({$and: [
-            {'product.productid': new ObjectId(req.params.id)},
+            {'product.productid': {$in: sortedProductList} },
             { rating: 1}
         ]})
 
         const mostUpvote = await reviews.find({$and: [
-            {'product.productid': new ObjectId(req.params.id)}
+            {'product.productid': {$in: sortedProductList} },
         ]})
         .populate({path: "userid", select: ["firstname", "displayimage"]})
         .sort({upvotes: -1})

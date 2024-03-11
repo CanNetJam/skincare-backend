@@ -26,10 +26,10 @@ const ordersSchema = new mongoose.Schema({
             price: {type: Number},
             quantity: {type: Number},
             type: {type: String},
-            withticket: {
+            reviewed: {
                 type: Boolean,
                 default: false
-            }
+            },
         }
     ],
     amounttotal: {
@@ -103,8 +103,14 @@ const ordersSchema = new mongoose.Schema({
     discount: {
         type: Number
     },
+    discounttype: {
+        type: String
+    },
+    discountcode: {
+        type: String
+    },
     discountid: {
-        type: mongoose.Schema.Types.ObjectId, ref: "vouchers"
+        type: String
     },
     reviewed: {
         type: Boolean,
