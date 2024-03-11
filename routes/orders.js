@@ -47,7 +47,8 @@ router.post("/submit-order/:id", auth, async (req, res) => {
         if (addOrder) {
             if (addOrder.paymentoption!=="COD") {
                 let destructuredCart = []
-                let perItemDiscount = Math.round(obj.discount/obj.items.length)
+                let perItemDiscount = obj.discount/obj.items.length
+
                 obj.items.map((a)=> {
                     destructuredCart.push({
                         currency: 'PHP',
@@ -59,7 +60,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                             obj.discounttype==="Percentage" ? 
                                 Math.floor((a.price-(a.price*(req.body.discount/100)))*100) 
                             : 
-                                (a.price-Math.round(perItemDiscount/a.quantity))*100
+                                Math.round((a.price-perItemDiscount/a.quantity)*100)
                         :   a.price*100
                         ,
                         name: a.product.name,
