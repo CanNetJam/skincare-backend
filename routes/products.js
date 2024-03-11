@@ -115,6 +115,12 @@ router.post("/update-product", async (req, res) => {
         }
         const info = await product.findByIdAndUpdate({ _id: new ObjectId(req.body._id) }, {$set: obj})
 
+        if (obj.relatedproducts.length>0){
+            for (let i=0; i<obj.relatedproducts.length; i++) {
+                await product.findByIdAndUpdate({ _id: obj.relatedproducts[i]?._id },  {$addToSet: {relatedproducts: info._id}})
+            }
+        }
+        
         if (req.body.displayimage!==undefined) {
             if (info.displayimage!==req.body.displayimage) {
                 cloudinary.uploader.destroy(info.displayimage)
