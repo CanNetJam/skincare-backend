@@ -15,6 +15,7 @@ const orderRoute = require ('./routes/orders');
 const ticketRoute = require ('./routes/tickets');
 const reviewsRoute = require ('./routes/reviews');
 const vouchersRoute = require ('./routes/vouchers');
+const videosSchema = require ('./routes/videos')
 
 //mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
 mongoose.connect(process.env.CONNECTIONSTRING , {
@@ -33,6 +34,7 @@ app.use("/orders", orderRoute)
 app.use("/tickets", ticketRoute)
 app.use("/reviews", reviewsRoute) 
 app.use("/vouchers", vouchersRoute) 
+app.use("/videos", videosSchema) 
 
 app.get('/', async (req, res) => {
   return res.json("Server loaded.");
