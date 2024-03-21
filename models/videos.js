@@ -4,6 +4,9 @@ const videosSchema = new mongoose.Schema({
     source: {
         type: String,
     },
+    thumbnail: {
+        type: String,
+    },
     videolink: {
         type: String,
     },

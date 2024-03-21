@@ -40,7 +40,11 @@ const productSchema = new mongoose.Schema({
     },
     relatedproducts: [ 
         { type: mongoose.Schema.Types.ObjectId, ref: "product"},
-    ]
+    ],
+    featuredvideos: {
+        type: Array,
+        default: []
+    },
 }, { timestamps: true })
 
 module.exports= mongoose.model("product", productSchema)

@@ -69,7 +69,8 @@ router.post("/create-product", async (req, res) => {
             dont: JSON.parse(req.body.dont),
             moreimage: req.body.moreimage,
             routines: JSON.parse(req.body.routines),
-            videos: req.body.prodvid
+            videos: req.body.prodvid,
+            featuredvideos: JSON.parse(req.body.featuredvideos),
             //variation: newVariations
         }
         const newProduct = await product.create(obj)
