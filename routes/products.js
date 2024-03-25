@@ -67,10 +67,10 @@ router.post("/create-product", async (req, res) => {
             ingredients: newIngredients,
             do: JSON.parse(req.body.do),
             dont: JSON.parse(req.body.dont),
-            moreimage: req.body.moreimage,
+            moreimage: req.body.moreimage ? req.body.moreimage : [],
             routines: JSON.parse(req.body.routines),
             videos: req.body.prodvid,
-            featuredvideos: JSON.parse(req.body.featuredvideos),
+            featuredvideos: req.body.featuredvideos ? JSON.parse(req.body.featuredvideos) : [],
             //variation: newVariations
         }
         const newProduct = await product.create(obj)
@@ -109,7 +109,7 @@ router.post("/update-product", async (req, res) => {
             ingredients: newIngredients,
             do: JSON.parse(req.body.do),
             dont: JSON.parse(req.body.dont),
-            moreimage: req.body.moreimage,
+            moreimage: req.body.moreimage ? req.body.moreimage : [],
             routines: JSON.parse(req.body.routines),
             videos: req.body.prodvid,
             relatedproducts: JSON.parse(req.body.relatedproducts)
