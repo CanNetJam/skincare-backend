@@ -130,7 +130,6 @@ router.post("/update-product", async (req, res) => {
         if (info.moreimage[0]!==undefined) {
             for(let i = 0; i<info.moreimage.length; i++){
                 if (info.moreimage[i]!==req.body.moreimage[i]) {
-                    //console.log(info.moreimage[i]+" a photo on moreimages is deleted")
                     cloudinary.uploader.destroy(info.moreimage[i])
                 }
             }
@@ -138,7 +137,6 @@ router.post("/update-product", async (req, res) => {
         if (info.ingredients[0]!==undefined) {
             for(let i = 0; i<info.ingredients.length; i++){
                 if (info.ingredients[i].photo!==req.body.ingphoto[i]) {
-                    //console.log(info.ingredients[i].photo+" a photo on ingredients is deleted")
                     cloudinary.uploader.destroy(info.ingredients[i].photo)
                 }
             }
@@ -147,8 +145,7 @@ router.post("/update-product", async (req, res) => {
         if (info.videos[0]!==undefined && req.body.prodvid!==undefined) {
             for(let i = 0; i<info.videos.length; i++){
                 if (info.videos[i]!==req.body.prodvid[i]) {
-                    //console.log(info.videos[i]+" a video is deleted")
-                    cloudinary.uploader.destroy(info.videos[i])
+                    cloudinary.uploader.destroy(info.videos[i], {resource_type: 'video', invalidate: true})
                 }
             }
         }
@@ -157,6 +154,35 @@ router.post("/update-product", async (req, res) => {
     }catch (err) {
         console.log(err)
         res.status(500).json(err)
+    }
+})
+
+router.delete("/delete-product/:id", async (req, res) => {
+    const doc = await product.findById(req.params.id)
+
+    const productItem = await product.findByIdAndDelete(doc)  
+    if (productItem) {
+        if (productItem.displayimage!==undefined) {
+            cloudinary.uploader.destroy(productItem.displayimage)
+        }
+        if (productItem.moreimage[0]!==undefined) {
+            for(let i = 0; i<productItem.moreimage.length; i++){
+                cloudinary.uploader.destroy(productItem.moreimage[i])
+            }
+        }
+        if (productItem.ingredients[0]!==undefined) {
+            for(let i = 0; i<productItem.ingredients.length; i++){
+                cloudinary.uploader.destroy(productItem.ingredients[i].photo)
+            }
+        }
+        if (productItem.featuredvideos[0]!==undefined) {
+            for(let i = 0; i<productItem.featuredvideos.length; i++){
+                cloudinary.uploader.destroy(productItem.featuredvideos[i], {resource_type: 'video', invalidate: true})
+            }
+        }
+        res.status(200).json(true)
+    } else {
+        res.status(500).json(false)
     }
 })
 

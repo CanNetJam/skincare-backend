@@ -55,7 +55,7 @@ router.get("/all-orders",  async (req, res) => {
         const obj = {
             AllOrders: allOrders.length,
             AllPreviousOrders: allPreviousOrders.length,
-            AllSales: sum,
+            AllSales: sum?.toFixed(2),
             AllPreviousSales: sum2,
             AllCustomers: allCostumers.length,
             AllPreviousCustomers: allPreviousCustomers.length,
