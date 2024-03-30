@@ -108,16 +108,16 @@ router.post("/send-policy-email", auth, async (req, res) => {
                             <tbody>
                                 <tr>
                                     <td>
-                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/products"><b>Our Products</b></a>
                                     </td>
                                     <td >
-                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/understanding-your-skin"><b>Understanding your Skin</b></a>
                                     </td>
                                     <td >
-                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/about-us"><b>About Us</b></a>
                                     </td>
                                     <td >
-                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                        <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/faqs"><b>FAQs</b></a>
                                     </td>
                                 </tr>
                             </tbody>

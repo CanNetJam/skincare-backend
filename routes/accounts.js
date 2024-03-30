@@ -58,16 +58,16 @@ router.post("/register", async (req, res) => {
                                 <tbody>
                                     <tr>
                                         <td>
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/products"><b>Our Products</b></a>
                                         </td>
                                         <td >
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/understanding-your-skin"><b>Understanding your Skin</b></a>
                                         </td>
                                         <td >
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/about-us"><b>About Us</b></a>
                                         </td>
                                         <td >
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/faqs"><b>FAQs</b></a>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -83,7 +83,7 @@ router.post("/register", async (req, res) => {
                             <br/>
                             <br/>
                             This email is sent to you in order to verify your email address associated to your Klued account.
-                            Click <a href=${"https://kluedskincare.com/#/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
+                            Click <a href=${"https://kluedskincare.com/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
                             <br/>
                             <br/>
                             This link will expire on <b>${formattedDate}</b>.
@@ -161,16 +161,16 @@ router.post("/register", async (req, res) => {
                                 <tbody>
                                     <tr>
                                         <td>
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/products"><b>Our Products</b></a>
                                         </td>
                                         <td >
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/understanding-your-skin"><b>Understanding your Skin</b></a>
                                         </td>
                                         <td >
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/about-us"><b>About Us</b></a>
                                         </td>
                                         <td >
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/faqs"><b>FAQs</b></a>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -204,17 +204,17 @@ router.post("/register", async (req, res) => {
                                 <tbody>
                                     <tr>
                                         <td style="max-width:32%; text-align: center; font-size: 16px">
-                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/product/658b84494c94654d802d8bc7"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1xjw0RT5vYwAueTCibVXWBwn_NwnU0tDs" alt="" title="" width="150" height="150"/></a>
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/products/klued---barrier-support-hydrating-jelly-cleanser/658b84494c94654d802d8bc7"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1xjw0RT5vYwAueTCibVXWBwn_NwnU0tDs" alt="" title="" width="150" height="150"/></a>
                                             <br/>
                                             <b>Klued - Barrier Support Hydrating Jelly Cleanser</b>
                                         </td>
                                         <td style="max-width:32%; text-align: center; font-size: 16px">
-                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/product/658b815b4c94654d802d8bc0"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=11WnG-nVj02AWVHceJbPYEkrUXSu_JEjU" alt="" title="" width="150" height="150"/></a>
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/products/klued---multi-brightening-complex-serum/658b815b4c94654d802d8bc0"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=11WnG-nVj02AWVHceJbPYEkrUXSu_JEjU" alt="" title="" width="150" height="150"/></a>
                                             <br/>
                                             <b>Klued - Multi-Brightening Complex Serum</b>
                                         </td>
                                         <td style="max-width:32%; text-align: center; font-size: 16px">
-                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/product/658b7bb1b6b310876eb11c5d"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1b71zBNPDpdIs_sosmKGiVGE_jlLAVva1" alt="" title="" width="150" height="150"/></a>
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/products/klued---multi-hyaluronic-acid-complex-serum/658b7bb1b6b310876eb11c5d"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1b71zBNPDpdIs_sosmKGiVGE_jlLAVva1" alt="" title="" width="150" height="150"/></a>
                                             <br/>
                                             <b>Klued - Multi-Hyaluronic Acid Complex Serum</b>    
                                         </td>
@@ -230,17 +230,17 @@ router.post("/register", async (req, res) => {
                                 <tbody>
                                     <tr>
                                         <td style="max-width:32%; text-align: center; font-size: 16px">
-                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/package/658b89224c94654d802d8bdb"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=15FY0yN4MdrspriMHj5fPU8v3rZyRaC3I" alt="" title="" width="150" height="150"/></a>
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/packages/klued-oily-or-acne-prone-skin-set/658b89224c94654d802d8bdb"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=15FY0yN4MdrspriMHj5fPU8v3rZyRaC3I" alt="" title="" width="150" height="150"/></a>
                                             <br/>
                                             <b>Klued Oily/Acne Prone Skin SET</b>
                                         </td>
                                         <td style="max-width:32%; text-align: center; font-size: 16px">
-                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/package/658b8b2b4c94654d802d8bea"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1W41Bc2EsEt5mVCVqDs9LWim98Vhaww-n" alt="" title="" width="150" height="150"/></a>
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/packages/klued-anti-aging-routine-set-(for-beginners)/658b8b2b4c94654d802d8bea"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1W41Bc2EsEt5mVCVqDs9LWim98Vhaww-n" alt="" title="" width="150" height="150"/></a>
                                             <br/>
                                             <b>Klued Anti-Aging Routine SET (for Beginners)</b>
                                         </td>
                                         <td style="max-width:32%; text-align: center; font-size: 16px">
-                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/details/package/658b8a5a4c94654d802d8be5"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=10aYRf_BNBTg9XJrqwe1QldKxCy2wx6ho" alt="" title="" width="150" height="150"/></a>
+                                            <a style="border-radius: 8px;padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/packages/klued-stubborn-dark-spot-and-hyperpigmentation-set/658b8a5a4c94654d802d8be5"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=10aYRf_BNBTg9XJrqwe1QldKxCy2wx6ho" alt="" title="" width="150" height="150"/></a>
                                             <br/>
                                             <b>Klued Stubborn Dark spot and Hyperpigmentation SET</b>    
                                         </td>
@@ -582,16 +582,16 @@ router.post("/update-account-info/:id", auth, async (req, res) => {
                                 <tbody>
                                     <tr>
                                         <td>
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/products"><b>Our Products</b></a>
                                         </td>
                                         <td >
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/understanding-your-skin"><b>Understanding your Skin</b></a>
                                         </td>
                                         <td >
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/about-us"><b>About Us</b></a>
                                         </td>
                                         <td >
-                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                            <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/faqs"><b>FAQs</b></a>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -607,7 +607,7 @@ router.post("/update-account-info/:id", auth, async (req, res) => {
                             <br/>
                             <br/>
                             This email is sent to you in order to verify your new email address that is updated in your account.
-                            Click <a href=${"https://kluedskincare.com/#/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
+                            Click <a href=${"https://kluedskincare.com/email-verification/"+props._id+"/"+uniqueString}>here</a> to continue with the process.
                             <br/>
                             <br/>
                             This link will expire on <b>${formattedDate}</b>.
@@ -730,16 +730,16 @@ router.post("/reset-password/:email", async (req, res) => {
                                     <tbody>
                                         <tr>
                                             <td>
-                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/product-details"><b>Our Products</b></a>
+                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/products"><b>Our Products</b></a>
                                             </td>
                                             <td >
-                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/understandingyourskin"><b>Understanding your Skin</b></a>
+                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/understanding-your-skin"><b>Understanding your Skin</b></a>
                                             </td>
                                             <td >
-                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/aboutus"><b>About Us</b></a>
+                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/about-us"><b>About Us</b></a>
                                             </td>
                                             <td >
-                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/#/faqs"><b>FAQs</b></a>
+                                                <a style="padding-left: 6px;padding-right: 6px;line-height:135%;font-size: 18px;text-transform:none;letter-spacing:1px;color:#ffffff;" href="https://kluedskincare.com/faqs"><b>FAQs</b></a>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -755,7 +755,7 @@ router.post("/reset-password/:email", async (req, res) => {
                                 <br/>
                                 <br/>
                                 This email is sent to you in order to help you recover your Klued Account. 
-                                Your password is now reset to <b>${randomNum}</b>. Use this to login on the Klued account. Click <a href="https://kluedskincare.com/#/login">here</a> to head over the website.
+                                Your password is now reset to <b>${randomNum}</b>. Use this to login on the Klued account. Click <a href="https://kluedskincare.com/login">here</a> to head over the website.
                                 <br/>
                                 <br/>
                                 <b>Note:</b> This password is not secure, please change it immediately.
