@@ -682,12 +682,20 @@ router.post("/update-order/:id", auth, async (req, res) => {
                 }
                 res.status(200).send(true)
             }
-        } else {
+        } else if (req.body.status==="Delivered") {
             if (req.body.paymentoption!=="COD"){
                 await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status, deliveredat: Date.now()})
                 res.status(200).send(true)
             } else if (req.body.paymentoption==="COD") {
                 await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status, billingstatus: "Paid", paidat: Date.now(), deliveredat: Date.now()})
+                res.status(200).send(true)
+            }
+        } else {
+            if (req.body.paymentoption!=="COD"){
+                await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status})
+                res.status(200).send(true)
+            } else if (req.body.paymentoption==="COD") {
+                await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status})
                 res.status(200).send(true)
             }
         }
