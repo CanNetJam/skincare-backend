@@ -1,9 +1,31 @@
 const express = require ("express");
 const product = require ("../models/product.js");
-const reviews = require ("../models/reviews.js");
 const router = express.Router();
 const { ObjectId } = require ("mongodb");
 const cloudinary = require('cloudinary').v2
+const multer  = require('multer');
+const path = require("path");
+const crypto = require('crypto');
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const sharp = require("sharp");
+const s3 = new S3Client({
+    // credentials: {
+    //     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    //     secretKeyId: process.env.AWS_SECRET_ACCESS_KEY,
+    // },
+    region: process.env.BUCKET_REGION
+})
+
+// const getObjectParams = {
+//     Bucket: process.env.BUCKET_NAME,
+//     Key: uploadParams?.Key,
+// }
+// const command = new GetObjectCommand(getObjectParams);
+// const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+// console.log(url)
+// obj.displayimage = uploadParams?.Key
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage });
 
 router.get("/get-all-products", async (req, res) => {
     try {
@@ -28,7 +50,7 @@ router.get("/get-product", async (req, res) => {
     }
 })
 
-router.post("/create-product", async (req, res) => {
+router.post("/create-product", upload.fields([{ name: 'displayimage', maxCount: 1 }, { name: 'moreimage', maxCount: 3 }, { name: 'ingphoto', maxCount: 100 }, { name: 'prodvid', maxCount: 10 }]), async (req, res) => {
     // let variations = JSON.parse(req.body.variations)
     // let newVariations = []
     // for (let i=0; i<variations.length; i++){
@@ -39,23 +61,37 @@ router.post("/create-product", async (req, res) => {
     //     newVariations.push({...variations[i], options: varr})
     // }
 
-    let newIngredients = JSON.parse(req.body.ingredients)
-    if (req.body?.ingphoto){
-        if (req.body.ingphoto[0]!==undefined) {
+    try {
+        let newIngredients = JSON.parse(req.body.ingredients)
+        if (req.files?.ingphoto){
             newIngredients = newIngredients.map((a, index)=> {
-                return {...a, photo: req.body.ingphoto[index]}
+                async function uploadImage() {
+                    const imageResize = await sharp(req.files.ingphoto[index]?.buffer)
+                    .resize({width: 500, height: 500, fit: sharp.fit.cover,})
+                    .toFormat('webp')
+                    .webp({ quality: 50 })
+                    .toBuffer()
+        
+                    const uploadParams = {
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: crypto.pbkdf2Sync(req.files.ingphoto[index].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                        Body: imageResize,
+                        ContentType: req.files.ingphoto[index]?.mimetype
+                    }
+                    const uploadPhoto = new PutObjectCommand(uploadParams)
+                    await s3.send(uploadPhoto)
+                }
+                uploadImage()
+                return {...a, photo: crypto.pbkdf2Sync(req.files.ingphoto[index].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp"}
             })
         }
-    }
-    
-    try {
+
         const obj = {
             name: req.body.name,
             maindesc: req.body.maindesc,
             stock: req.body.stock,
             usage: req.body.usage,
             extra: req.body.extra,
-            displayimage: req.body.displayimage,
             price: req.body.price,
             disprice: req.body.disprice,
             category: req.body.category,
@@ -67,37 +103,120 @@ router.post("/create-product", async (req, res) => {
             ingredients: newIngredients,
             do: JSON.parse(req.body.do),
             dont: JSON.parse(req.body.dont),
-            moreimage: req.body.moreimage ? req.body.moreimage : [],
+            //moreimage: req.body.moreimage ? req.body.moreimage : [],
             routines: JSON.parse(req.body.routines),
             videos: req.body.prodvid,
             featuredvideos: req.body.featuredvideos ? JSON.parse(req.body.featuredvideos) : [],
             //variation: newVariations
         }
+
+        if (req.files?.displayimage){
+            for (let i=0; i<req.files.displayimage.length; i++) {
+                const imageResize = await sharp(req.files.displayimage[i]?.buffer)
+                .resize({width: 960, height: 1080, fit: sharp.fit.cover,})
+                .toFormat('webp')
+                .webp({ quality: 80 })
+                .toBuffer()
+
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.displayimage[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                    Body: imageResize,
+                    ContentType: req.files.displayimage[i]?.mimetype
+                }
+                const uploadPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(uploadPhoto)
+                obj.displayimage = uploadParams?.Key
+            }
+        }
+
+        if (req.files?.moreimage){
+            let imageArray = []
+            for (let i=0; i<req.files.moreimage.length; i++) {
+                const imageResize = await sharp(req.files.moreimage[i]?.buffer)
+                .resize({width: 500, height: 500, fit: sharp.fit.cover,})
+                .toFormat('webp')
+                .webp({ quality: 50 })
+                .toBuffer()
+
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.moreimage[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                    Body: imageResize,
+                    ContentType: req.files.moreimage[i]?.mimetype
+                }
+                const uploadPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(uploadPhoto)
+                imageArray.push(uploadParams.Key)
+            }
+            obj.moreimage = imageArray
+        } else {
+            obj.moreimage = []
+        }
+
+        if (req.files?.prodvid){
+            for (let i=0; i<req.files.prodvid.length; i++) {
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.prodvid[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + path.extname(req.files.prodvid[i].originalname),
+                    Body: req.files.prodvid[i].buffer,
+                    ContentType: req.files.prodvid[i]?.mimetype
+                }
+                const videoPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(videoPhoto)
+                obj.videos = uploadParams?.Key
+            }
+        }
+
         const newProduct = await product.create(obj)
         res.status(200).json(newProduct)
     }catch (err) {
         console.log(err)
         res.status(500).json(err)
     }
+    
 })
 
-router.post("/update-product", async (req, res) => {
-    let newIngredients = JSON.parse(req.body.ingredients)
-    if (req.body?.ingphoto){
-        if (req.body.ingphoto[0]!==undefined) {
-            newIngredients = newIngredients.map((a, index)=> {
-                return {...a, photo: req.body.ingphoto[index]}
-            })
-        }
-    }
+router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 1 }, { name: 'moreimage', maxCount: 3 }, { name: 'ingphoto', maxCount: 100 }, { name: 'prodvid', maxCount: 10 }]), async (req, res) => {
     try {
+        let ingList = JSON.parse(req.body?.ingphotos)
+        if (req.files?.ingphoto?.length>0) {
+            let uploadedMoreIng = req.files.ingphoto
+            if (uploadedMoreIng?.length>0) {
+                let filecount = 0
+                for (let n=0; n<ingList.length; n++) {
+                    if (ingList[n].photo==="file") {
+                        const imageResize = await sharp(uploadedMoreIng[filecount]?.buffer)
+                        .resize({width: 500, height: 500, fit: sharp.fit.cover,})
+                        .toFormat('webp')
+                        .webp({ quality: 50 })
+                        .toBuffer()
+                        const uploadParams = {
+                            Bucket: process.env.BUCKET_NAME,
+                            Key: crypto.pbkdf2Sync(uploadedMoreIng[filecount].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                            Body: imageResize,
+                            ContentType: uploadedMoreIng[filecount]?.mimetype
+                        }
+                        ingList[n] = {
+                            name: ingList[n].name,
+                            desc: ingList[n].desc,
+                            photo: uploadParams?.Key
+                        }
+                        const uploadPhoto = new PutObjectCommand(uploadParams)
+                        await s3.send(uploadPhoto)
+                        filecount+=1
+                    } else {
+                        ingList[n] = ingList[n]
+                    }
+                }
+            } 
+        }
         const obj = {
             name: req.body.name,
             maindesc: req.body.maindesc,
             stock: req.body.stock,
             usage: req.body.usage,
             extra: req.body.extra,
-            displayimage: req.body.displayimage,
             price: req.body.price,
             disprice: req.body.disprice,
             category: req.body.category,
@@ -106,14 +225,76 @@ router.post("/update-product", async (req, res) => {
                 tiktok: req.body.tiktoklink,
                 lazada: req.body.lazadalink,
             },
-            ingredients: newIngredients,
+            ingredients: ingList,
             do: JSON.parse(req.body.do),
             dont: JSON.parse(req.body.dont),
-            moreimage: req.body.moreimage ? req.body.moreimage : [],
             routines: JSON.parse(req.body.routines),
-            videos: req.body.prodvid,
             relatedproducts: JSON.parse(req.body.relatedproducts)
         }
+        if (req.files?.displayimage){
+            for (let i=0; i<req.files.displayimage.length; i++) {
+                const imageResize = await sharp(req.files.displayimage[i]?.buffer)
+                .resize({width: 960, height: 1080, fit: sharp.fit.cover,})
+                .toFormat('webp')
+                .webp({ quality: 80 })
+                .toBuffer()
+
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.displayimage[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                    Body: imageResize,
+                    ContentType: req.files.displayimage[i]?.mimetype
+                }
+                const uploadPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(uploadPhoto)
+                obj.displayimage = uploadParams?.Key
+            }
+        } 
+        let moreImageList = JSON.parse(req.body.collection)
+        if (req.files?.moreimage?.length>0) {
+            let uploadedMoreImage = req.files?.moreimage
+            if (uploadedMoreImage?.length>0) {
+                let filecount = 0
+                for (let n=0; n<moreImageList.length; n++) {
+                    if (moreImageList[n]==="file") {
+                        const imageResize = await sharp(uploadedMoreImage[filecount]?.buffer)
+                        .resize({width: 500, height: 500, fit: sharp.fit.cover,})
+                        .toFormat('webp')
+                        .webp({ quality: 50 })
+                        .toBuffer()
+                        const uploadParams = {
+                            Bucket: process.env.BUCKET_NAME,
+                            Key: crypto.pbkdf2Sync(uploadedMoreImage[filecount].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                            Body: imageResize,
+                            ContentType: uploadedMoreImage[filecount]?.mimetype
+                        }
+                        const uploadPhoto = new PutObjectCommand(uploadParams)
+                        await s3.send(uploadPhoto)
+                        moreImageList[n] = uploadParams.Key
+                        filecount+=1
+                    } else {
+                        moreImageList[n] = moreImageList[n]
+                    }
+                }
+                obj.moreimage = moreImageList
+            } else {
+                obj.moreimage = moreImageList
+            }
+        }
+        if (req.files?.prodvid){
+            for (let i=0; i<req.files.prodvid.length; i++) {
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.prodvid[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + path.extname(req.files.prodvid[i].originalname),
+                    Body: req.files.prodvid[i].buffer,
+                    ContentType: req.files.prodvid[i]?.mimetype
+                }
+                const videoPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(videoPhoto)
+                obj.videos = uploadParams?.Key
+            }
+        }
+
         const info = await product.findByIdAndUpdate({ _id: new ObjectId(req.body._id) }, {$set: obj})
 
         if (obj.relatedproducts.length>0){
@@ -121,35 +302,48 @@ router.post("/update-product", async (req, res) => {
                 await product.findByIdAndUpdate({ _id: obj.relatedproducts[i]?._id },  {$addToSet: {relatedproducts: info._id}})
             }
         }
-        
-        if (req.body.displayimage!==undefined) {
-            if (info.displayimage!==req.body.displayimage) {
-                cloudinary.uploader.destroy(info.displayimage)
+        if (req.files?.displayimage) {
+            if (info.displayimage!==obj.displayimage) {
+                const command = new DeleteObjectCommand({
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: info.displayimage,
+                })
+                await s3.send(command)
             }
         }
-        if (info.moreimage[0]!==undefined) {
-            for(let i = 0; i<info.moreimage.length; i++){
-                if (info.moreimage[i]!==req.body.moreimage[i]) {
-                    cloudinary.uploader.destroy(info.moreimage[i])
+        if (req.files?.moreimage) {
+            for (let i = 0; i<moreImageList.length; i++){
+                if (moreImageList[i]!==info.moreimage[i] && info.moreimage.length>0 && info.moreimage[i]!==undefined) {
+                    const command = new DeleteObjectCommand({
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: info.moreimage[i],
+                    })
+                    await s3.send(command)
                 }
             }
         }
-        if (info.ingredients[0]!==undefined) {
+        if (info.ingredients.length>0) {
             for(let i = 0; i<info.ingredients.length; i++){
-                if (info.ingredients[i].photo!==req.body.ingphoto[i]) {
-                    cloudinary.uploader.destroy(info.ingredients[i].photo)
+                if (info.ingredients[i].photo!==ingList[i].photo) {
+                    const command = new DeleteObjectCommand({
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: info.ingredients[i].photo,
+                    })
+                    await s3.send(command)
                 }
             }
         }
-        
-        if (info.videos[0]!==undefined && req.body.prodvid!==undefined) {
+        if (info.videos.length>0 && req.files?.prodvid.length>0) {
             for(let i = 0; i<info.videos.length; i++){
-                if (info.videos[i]!==req.body.prodvid[i]) {
-                    cloudinary.uploader.destroy(info.videos[i], {resource_type: 'video', invalidate: true})
+                if (info.videos[i]!==obj.videos[i]) {
+                    const command = new DeleteObjectCommand({
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: info.videos[i],
+                    })
+                    await s3.send(command)
                 }
             }
         }
-
         res.status(200).json(true)
     }catch (err) {
         console.log(err)

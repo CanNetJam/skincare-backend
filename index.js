@@ -25,6 +25,7 @@ mongoose.connect(process.env.CONNECTIONSTRING , {
 const app = express();
 app.use(cors());
 app.use(express.json()); // Add this line to parse incoming JSON data
+app.use(express.urlencoded({ extended: false }));
 app.use("/product", productRoute)
 app.use("/", cloudRoute)
 app.use("/emails", emailsRoute)
