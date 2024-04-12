@@ -2,7 +2,6 @@ const express = require ("express");
 const product = require ("../models/product.js");
 const router = express.Router();
 const { ObjectId } = require ("mongodb");
-const cloudinary = require('cloudinary').v2
 const multer  = require('multer');
 const path = require("path");
 const crypto = require('crypto');
@@ -333,7 +332,7 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                 }
             }
         }
-        if (info.videos.length>0 && req.files?.prodvid.length>0) {
+        if (info.videos.length>0 && req.files?.prodvid?.length>0 && req.files?.prodvid) {
             for(let i = 0; i<info.videos.length; i++){
                 if (info.videos[i]!==obj.videos[i]) {
                     const command = new DeleteObjectCommand({
@@ -357,21 +356,37 @@ router.delete("/delete-product/:id", async (req, res) => {
     const productItem = await product.findByIdAndDelete(doc)  
     if (productItem) {
         if (productItem.displayimage!==undefined) {
-            cloudinary.uploader.destroy(productItem.displayimage)
+            const command = new DeleteObjectCommand({
+                Bucket: process.env.BUCKET_NAME,
+                Key: productItem.displayimage,
+            })
+            await s3.send(command)
         }
         if (productItem.moreimage[0]!==undefined) {
             for(let i = 0; i<productItem.moreimage.length; i++){
-                cloudinary.uploader.destroy(productItem.moreimage[i])
+                const command = new DeleteObjectCommand({
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: productItem.moreimage[i],
+                })
+                await s3.send(command)
             }
         }
         if (productItem.ingredients[0]!==undefined) {
             for(let i = 0; i<productItem.ingredients.length; i++){
-                cloudinary.uploader.destroy(productItem.ingredients[i].photo)
+                const command = new DeleteObjectCommand({
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: productItem.ingredients[i].photo,
+                })
+                await s3.send(command)
             }
         }
         if (productItem.featuredvideos[0]!==undefined) {
             for(let i = 0; i<productItem.featuredvideos.length; i++){
-                cloudinary.uploader.destroy(productItem.featuredvideos[i], {resource_type: 'video', invalidate: true})
+                const command = new DeleteObjectCommand({
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: productItem.featuredvideos[i],
+                })
+                await s3.send(command)
             }
         }
         res.status(200).json(true)

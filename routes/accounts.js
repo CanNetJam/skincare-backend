@@ -5,12 +5,21 @@ const accounts = require ("../models/accounts.js");
 const router = express.Router();
 const auth = require("../middleware/auth");
 const { ObjectId } = require ("mongodb");
-const cloudinary = require('cloudinary').v2
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require('uuid');
 const verification = require("../models/verification.js");
 const moment = require("moment");
 const vouchers = require('../models/vouchers.js');
+const multer  = require('multer');
+const path = require("path");
+const crypto = require('crypto');
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const sharp = require("sharp");
+const s3 = new S3Client({
+    region: process.env.BUCKET_REGION
+})
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage });
 
 router.post("/register", async (req, res) => {
     async function sendVerification(props){
@@ -447,24 +456,46 @@ router.get("/all-accounts", auth, async (req, res) => {
     }
 })
 
-router.post("/update-account/:id", auth, async (req, res) =>{
+router.post("/update-account/:id", auth, upload.fields([{ name: 'displayimage', maxCount: 1 }]), async (req, res) =>{
     const obj = {
         firstname: req.body.firstname, 
         lastname: req.body.lastname,
         phone: req.body.phone,
     }
-    if (req.body.displayimage) {
+    if (req.files?.displayimage?.length>0) {
         // if they are uploading a new photo
-        obj.displayimage = req.body.displayimage
+        let newPhoto
+        for (let i=0; i<req.files?.displayimage?.length; i++) {
+            const imageResize = await sharp(req.files.displayimage[i]?.buffer)
+            .resize({width: 250, height: 250, fit: sharp.fit.cover,})
+            .toFormat('webp')
+            .webp({ quality: 60 })
+            .toBuffer()
+
+            const uploadParams = {
+                Bucket: process.env.BUCKET_NAME,
+                Key: crypto.pbkdf2Sync(req.files.displayimage[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                Body: imageResize,
+                ContentType: req.files.displayimage[i]?.mimetype
+            }
+            const uploadPhoto = new PutObjectCommand(uploadParams)
+            await s3.send(uploadPhoto)
+            newPhoto = uploadParams.Key
+            obj.displayimage = uploadParams.Key
+        }
         const info = await accounts.findByIdAndUpdate({ _id: new ObjectId(req.params.id) }, {$set: obj})
         if (info.displayimage) {
-        cloudinary.uploader.destroy(info.displayimage)
+            const command = new DeleteObjectCommand({
+                Bucket: process.env.BUCKET_NAME,
+                Key: info.displayimage,
+            })
+            await s3.send(command)
         }
-        res.status(200).send(true)
+        res.status(200).send(newPhoto)
     } else {
         // if they are not uploading a new photo
-        await accounts.findByIdAndUpdate({ _id: new ObjectId(req.params.id) }, {$set: obj})
-        res.status(200).send(true)
+        const info = await accounts.findByIdAndUpdate({ _id: new ObjectId(req.params.id) }, {$set: obj}, {new: true})
+        res.status(200).send(info)
     }
 })
 

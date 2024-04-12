@@ -7,8 +7,18 @@ const package = require ("../models/package.js");
 const auth = require("../middleware/auth");
 const axios = require('axios');
 const { ObjectId } = require ("mongodb");
+const multer  = require('multer');
+const path = require("path");
+const crypto = require('crypto');
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const sharp = require("sharp");
+const s3 = new S3Client({
+    region: process.env.BUCKET_REGION
+})
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage });
 
-router.post("/submit-ticket", auth, async (req, res) => {
+router.post("/submit-ticket", auth, upload.fields([{ name: 'waybillimage', maxCount: 1 }, { name: 'productimage1', maxCount: 1 }, { name: 'productimage2', maxCount: 1 }]), async (req, res) => {
     try {
         const itemFocus = JSON.parse(req.body.items)
         filteredItems = itemFocus.map((a)=> {
@@ -27,14 +37,70 @@ router.post("/submit-ticket", auth, async (req, res) => {
             type: req.body.type,
             mainreason: req.body.mainreason,
             description: req.body.description,
-            waybillimage: req.body.waybillimage,
-            productimage1: req.body.productimage1,
-            productimage2: req.body.productimage2,
             status: "Investigating",
             transactionfee: req.body.transactionfee,
             items: filteredItems,
             expiresAt: Date.now() + 172800000
         }
+
+        if (req.files?.waybillimage){
+            for (let i=0; i<req.files.waybillimage.length; i++) {
+                const imageResize = await sharp(req.files.waybillimage[i]?.buffer)
+                .resize({width: 800, height: 800, fit: sharp.fit.cover,})
+                .toFormat('webp')
+                .webp({lossless:true, quality: 100 })
+                .toBuffer()
+
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.waybillimage[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                    Body: imageResize,
+                    ContentType: req.files.waybillimage[i]?.mimetype
+                }
+                const uploadPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(uploadPhoto)
+                obj.waybillimage = uploadParams?.Key
+            }
+        }
+        if (req.files?.productimage1){
+            for (let i=0; i<req.files.productimage1.length; i++) {
+                const imageResize = await sharp(req.files.productimage1[i]?.buffer)
+                .resize({width: 800, height: 800, fit: sharp.fit.cover,})
+                .toFormat('webp')
+                .webp({ quality: 75 })
+                .toBuffer()
+
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.productimage1[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                    Body: imageResize,
+                    ContentType: req.files.productimage1[i]?.mimetype
+                }
+                const uploadPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(uploadPhoto)
+                obj.productimage1 = uploadParams?.Key
+            }
+        }
+        if (req.files?.productimage2){
+            for (let i=0; i<req.files.productimage2.length; i++) {
+                const imageResize = await sharp(req.files.productimage2[i]?.buffer)
+                .resize({width: 800, height: 800, fit: sharp.fit.cover,})
+                .toFormat('webp')
+                .webp({ quality: 75 })
+                .toBuffer()
+
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.productimage2[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                    Body: imageResize,
+                    ContentType: req.files.productimage2[i]?.mimetype
+                }
+                const uploadPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(uploadPhoto)
+                obj.productimage2 = uploadParams?.Key
+            }
+        }
+
         const submitTicket = await tickets.create(obj)
         if (submitTicket) {
             await orders.findByIdAndUpdate({_id: obj.orderid}, {reviewed: true, ticketid: submitTicket._id })

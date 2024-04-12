@@ -7,7 +7,6 @@ dotenv.config()
 
 const productRoute = require ('./routes/products');
 const packageRoute = require ('./routes/package');
-const cloudRoute = require ('./routes/cloudinary');
 const emailsRoute = require ('./routes/emails');
 const accountsRoute = require ('./routes/accounts');
 const tokenRoute = require ('./routes/token');
@@ -27,7 +26,6 @@ app.use(cors());
 app.use(express.json()); // Add this line to parse incoming JSON data
 app.use(express.urlencoded({ extended: false }));
 app.use("/product", productRoute)
-app.use("/", cloudRoute)
 app.use("/emails", emailsRoute)
 app.use("/package", packageRoute)
 app.use("/accounts", accountsRoute)

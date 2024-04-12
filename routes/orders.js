@@ -10,7 +10,6 @@ const axios = require('axios');
 const { ObjectId } = require ("mongodb");
 const moment = require("moment");
 const nodemailer = require("nodemailer");
-const cloudinary = require('cloudinary').v2
 
 router.post("/submit-order/:id", auth, async (req, res) => {
     try {
@@ -56,7 +55,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                     destructuredCart.push({
                         currency: 'PHP',
                         images: [
-                            `https://res.cloudinary.com/drjkqwabe/image/upload/f_auto,q_50/${a.product.displayimage}.jpg`
+                            `https://klued-uploads.s3.ap-southeast-1.amazonaws.com/${a.product?.displayimage}`
                         ],
                         amount: 
                         obj.discount!==0 ? 
@@ -241,7 +240,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                                                                     ${index+1}
                                                                 </td>
                                                                 <td style='text-align: center; display: flex; gap: 4px; align-items: center; padding-left: 16px; padding-right: 16px;'>
-                                                                    <img style="height: 100px; width: 150px;" src=${`https://res.cloudinary.com/drjkqwabe/image/upload/f_auto,q_30/${a.item?.displayimage}.jpg`}></img>
+                                                                    <img style="height: 100px; width: 150px;" src=${`https://klued-uploads.s3.ap-southeast-1.amazonaws.com/${a.item?.displayimage}`}></img>
                                                                     <p style="height:100%; align-items: center;">${a.item.name}</p>
                                                                 </td>
                                                                 <td style='text-align: center; padding-left: 16px; padding-right: 16px;'>
@@ -403,7 +402,7 @@ router.post("/checkout_webhook", async (req, res) => {
                                                             ${index+1}
                                                         </td>
                                                         <td style='text-align: center; display: flex; gap: 4px; align-items: center; padding-left: 16px; padding-right: 16px;'>
-                                                            <img style="height: 100px; width: 150px;" src=${`https://res.cloudinary.com/drjkqwabe/image/upload/f_auto,q_30/${a.item?.displayimage}.jpg`}></img>
+                                                            <img style="height: 100px; width: 150px;" src=${`https://klued-uploads.s3.ap-southeast-1.amazonaws.com/${a.item?.displayimage}`}></img>
                                                             <p style="height:100%; align-items: center;">${a.item.name}</p>
                                                         </td>
                                                         <td style='text-align: center; padding-left: 16px; padding-right: 16px;'>

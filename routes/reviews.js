@@ -3,10 +3,19 @@ const router = express.Router();
 const reviews = require ("../models/reviews.js");
 const orders = require ("../models/orders.js");
 const auth = require("../middleware/auth");
-const cloudinary = require('cloudinary').v2
 const { ObjectId } = require ("mongodb");
+const multer  = require('multer');
+const path = require("path");
+const crypto = require('crypto');
+const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+const sharp = require("sharp");
+const s3 = new S3Client({
+    region: process.env.BUCKET_REGION
+})
+const storage = multer.memoryStorage()
+const upload = multer({ storage: storage });
 
-router.post("/submit-review", auth, async (req, res) => {
+router.post("/submit-review", auth, upload.fields([{ name: 'reviewimage', maxCount: 1 }]), async (req, res) => {
     try {
         const theItem = JSON.parse(req.body.itemtoreview)
         const obj = {
@@ -18,11 +27,30 @@ router.post("/submit-review", auth, async (req, res) => {
                 type: theItem.type
             },
             description: req.body.description,
-            reviewimage: req.body.reviewimage,
             rating: Number(req.body.rating),
             recommended: req.body.recommend,
             status: "visible"
         }
+        if (req.files?.reviewimage){
+            for (let i=0; i<req.files.reviewimage.length; i++) {
+                const imageResize = await sharp(req.files.reviewimage[i]?.buffer)
+                .resize({width: 350, height: 350, fit: sharp.fit.cover,})
+                .toFormat('webp')
+                .webp({ quality: 80 })
+                .toBuffer()
+
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.reviewimage[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                    Body: imageResize,
+                    ContentType: req.files.reviewimage[i]?.mimetype
+                }
+                const uploadPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(uploadPhoto)
+                obj.reviewimage = uploadParams?.Key
+            }
+        }
+
         const createReview = await reviews.create(obj)
         
         if (createReview) {
@@ -167,7 +195,11 @@ router.delete("/delete-review/:id", async (req, res) => {
     const doc = await reviews.findById(req.params.id)
 
     if (doc?.reviewimage) {
-        cloudinary.uploader.destroy(doc.reviewimage)
+        const command = new DeleteObjectCommand({
+            Bucket: process.env.BUCKET_NAME,
+            Key: doc?.reviewimage,
+        })
+        await s3.send(command)
     }
     const account = await reviews.findByIdAndDelete(doc)  
     if (account) {

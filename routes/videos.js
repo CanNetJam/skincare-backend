@@ -1,7 +1,6 @@
 const express = require ("express");
 const router = express.Router();
 const videos = require('../models/videos.js');
-const cloudinary = require('cloudinary').v2
 const multer  = require('multer');
 const path = require("path");
 const crypto = require('crypto');
@@ -147,8 +146,16 @@ router.post("/update-video", upload.fields([{ name: 'uploadedSource', maxCount: 
 router.delete("/delete-video/:id", async (req, res) => {
     const deletedVideo = await videos.findByIdAndDelete(req.params.id)  
     if (deletedVideo) {
-        cloudinary.uploader.destroy(deletedVideo.source, {resource_type: 'video', invalidate: true})
-        cloudinary.uploader.destroy(deletedVideo.thumbnail)
+        const command1 = new DeleteObjectCommand({
+            Bucket: process.env.BUCKET_NAME,
+            Key: deletedVideo.source,
+        })
+        await s3.send(command1)
+        const command2 = new DeleteObjectCommand({
+            Bucket: process.env.BUCKET_NAME,
+            Key: deletedVideo.thumbnail,
+        })
+        await s3.send(command2)
         res.status(200).json(deletedVideo)
     } else {
         res.status(500).json(false)

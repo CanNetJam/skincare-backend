@@ -2,7 +2,6 @@ const express = require ("express");
 const package = require ("../models/package.js");
 const router = express.Router();
 const { ObjectId } = require ("mongodb");
-const cloudinary = require('cloudinary').v2
 const multer  = require('multer');
 const crypto = require('crypto');
 const { S3Client, PutObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
