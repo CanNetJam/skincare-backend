@@ -49,7 +49,7 @@ router.get("/get-product", async (req, res) => {
     }
 })
 
-router.post("/create-product", upload.fields([{ name: 'displayimage', maxCount: 1 }, { name: 'moreimage', maxCount: 3 }, { name: 'ingphoto', maxCount: 100 }, { name: 'prodvid', maxCount: 10 }]), async (req, res) => {
+router.post("/create-product", upload.fields([{ name: 'displayimage', maxCount: 1 }, { name: 'moreimage', maxCount: 3 }, { name: 'ingphoto', maxCount: 10 }, { name: 'prodvid', maxCount: 10 }, { name: 'featuredvideos', maxCount: 10 }]), async (req, res) => {
     // let variations = JSON.parse(req.body.variations)
     // let newVariations = []
     // for (let i=0; i<variations.length; i++){
@@ -61,7 +61,38 @@ router.post("/create-product", upload.fields([{ name: 'displayimage', maxCount: 
     // }
 
     try {
-        let newIngredients = JSON.parse(req.body.ingredients)
+        let videoList = req.body?.videocollection ? JSON.parse(req.body?.videocollection) : []
+        if (videoList?.length>0) {
+            let uploadedMoreVid = req.files?.featuredvideos
+            if (uploadedMoreVid?.length>0) {
+                let filecount = 0
+                for (let n=0; n<videoList.length; n++) {
+                    if (videoList[n]?.video==="file") {
+                        const uploadParams = {
+                            Bucket: process.env.BUCKET_NAME,
+                            Key: crypto.pbkdf2Sync(uploadedMoreVid[filecount].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + path.extname(uploadedMoreVid[filecount].originalname),
+                            Body: uploadedMoreVid[filecount]?.buffer,
+                            ContentType: uploadedMoreVid[filecount]?.mimetype
+                        }
+                        videoList[n] = {
+                            title: videoList[n].title,
+                            description: videoList[n].description,
+                            video: {
+                                urlKey: uploadParams?.Key,
+                                type: "file",
+                            }
+                        }
+                        const uploadVideo = new PutObjectCommand(uploadParams)
+                        await s3.send(uploadVideo)
+                        filecount+=1
+                    } else {
+                        videoList[n] = videoList[n]
+                    }
+                }
+            }
+        }
+
+        let newIngredients = req.body.ingredients ? JSON.parse(req.body.ingredients) : []
         if (req.files?.ingphoto){
             newIngredients = newIngredients.map((a, index)=> {
                 async function uploadImage() {
@@ -105,7 +136,7 @@ router.post("/create-product", upload.fields([{ name: 'displayimage', maxCount: 
             //moreimage: req.body.moreimage ? req.body.moreimage : [],
             routines: JSON.parse(req.body.routines),
             videos: req.body.prodvid,
-            featuredvideos: req.body.featuredvideos ? JSON.parse(req.body.featuredvideos) : [],
+            featuredvideos: req.body.videocollection ? videoList : [],
             //variation: newVariations
         }
 
@@ -114,7 +145,7 @@ router.post("/create-product", upload.fields([{ name: 'displayimage', maxCount: 
                 const imageResize = await sharp(req.files.displayimage[i]?.buffer)
                 .resize({width: 960, height: 1080, fit: sharp.fit.cover,})
                 .toFormat('webp')
-                .webp({ quality: 80 })
+                .webp({lossless:true, quality: 100 })
                 .toBuffer()
 
                 const uploadParams = {
@@ -178,7 +209,7 @@ router.post("/create-product", upload.fields([{ name: 'displayimage', maxCount: 
 
 router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 1 }, { name: 'moreimage', maxCount: 3 }, { name: 'ingphoto', maxCount: 100 }, { name: 'prodvid', maxCount: 10 }]), async (req, res) => {
     try {
-        let ingList = JSON.parse(req.body?.ingphotos)
+        let ingList = req.body?.ingphotos ? JSON.parse(req.body?.ingphotos) : []
         if (req.files?.ingphoto?.length>0) {
             let uploadedMoreIng = req.files.ingphoto
             if (uploadedMoreIng?.length>0) {
@@ -235,7 +266,7 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                 const imageResize = await sharp(req.files.displayimage[i]?.buffer)
                 .resize({width: 960, height: 1080, fit: sharp.fit.cover,})
                 .toFormat('webp')
-                .webp({ quality: 80 })
+                .webp({lossless: true, quality: 100 })
                 .toBuffer()
 
                 const uploadParams = {
@@ -249,7 +280,7 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                 obj.displayimage = uploadParams?.Key
             }
         } 
-        let moreImageList = JSON.parse(req.body.collection)
+        let moreImageList = req.body.collection ? JSON.parse(req.body.collection) : []
         if (req.files?.moreimage?.length>0) {
             let uploadedMoreImage = req.files?.moreimage
             if (uploadedMoreImage?.length>0) {
@@ -295,7 +326,6 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
         }
 
         const info = await product.findByIdAndUpdate({ _id: new ObjectId(req.body._id) }, {$set: obj})
-
         if (obj.relatedproducts.length>0){
             for (let i=0; i<obj.relatedproducts.length; i++) {
                 await product.findByIdAndUpdate({ _id: obj.relatedproducts[i]?._id },  {$addToSet: {relatedproducts: info._id}})
@@ -351,46 +381,49 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
 })
 
 router.delete("/delete-product/:id", async (req, res) => {
-    const doc = await product.findById(req.params.id)
-
-    const productItem = await product.findByIdAndDelete(doc)  
-    if (productItem) {
-        if (productItem.displayimage!==undefined) {
-            const command = new DeleteObjectCommand({
-                Bucket: process.env.BUCKET_NAME,
-                Key: productItem.displayimage,
-            })
-            await s3.send(command)
-        }
-        if (productItem.moreimage[0]!==undefined) {
-            for(let i = 0; i<productItem.moreimage.length; i++){
+    try {
+        const productItem = await product.findByIdAndDelete(req.params.id)  
+        if (productItem) {
+            if (productItem.displayimage!==undefined) {
                 const command = new DeleteObjectCommand({
                     Bucket: process.env.BUCKET_NAME,
-                    Key: productItem.moreimage[i],
+                    Key: productItem.displayimage,
                 })
                 await s3.send(command)
             }
-        }
-        if (productItem.ingredients[0]!==undefined) {
-            for(let i = 0; i<productItem.ingredients.length; i++){
-                const command = new DeleteObjectCommand({
-                    Bucket: process.env.BUCKET_NAME,
-                    Key: productItem.ingredients[i].photo,
-                })
-                await s3.send(command)
+            if (productItem.moreimage?.length>0) {
+                for(let i = 0; i<productItem.moreimage.length; i++){
+                    const command = new DeleteObjectCommand({
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: productItem.moreimage[i],
+                    })
+                    await s3.send(command)
+                }
             }
-        }
-        if (productItem.featuredvideos[0]!==undefined) {
-            for(let i = 0; i<productItem.featuredvideos.length; i++){
-                const command = new DeleteObjectCommand({
-                    Bucket: process.env.BUCKET_NAME,
-                    Key: productItem.featuredvideos[i],
-                })
-                await s3.send(command)
+            if (productItem.ingredients?.length>0) {
+                for(let i = 0; i<productItem.ingredients.length; i++){
+                    const command = new DeleteObjectCommand({
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: productItem.ingredients[i].photo,
+                    })
+                    await s3.send(command)
+                }
             }
-        }
+            if (productItem.featuredvideos?.length>0) {
+                for(let i = 0; i<productItem.featuredvideos.length; i++){
+                    if (productItem.featuredvideos[i].video.type==="file") {
+                        const command = new DeleteObjectCommand({
+                            Bucket: process.env.BUCKET_NAME,
+                            Key: productItem.featuredvideos[i].video?.urlKey,
+                        })
+                        await s3.send(command)
+                    }
+                }
+            }
+        } 
         res.status(200).json(true)
-    } else {
+    } catch (err) {
+        console.log(err)
         res.status(500).json(false)
     }
 })

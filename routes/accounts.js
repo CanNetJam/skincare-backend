@@ -520,7 +520,11 @@ router.post("/update-account/billing-address/:id", auth, async (req, res) =>{
 router.delete("/delete-account/:id", async (req, res) => {
     const doc = await accounts.findById(req.params.id)
     if (doc?.displayimage) {
-        cloudinary.uploader.destroy(doc.displayimage)
+        const command = new DeleteObjectCommand({
+            Bucket: process.env.BUCKET_NAME,
+            Key: doc.displayimage,
+        })
+        await s3.send(command)
     }
     const account = await accounts.findByIdAndDelete(doc)  
     if (account) {

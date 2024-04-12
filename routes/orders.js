@@ -565,10 +565,16 @@ router.get("/:id/:deliverystatus", auth, async (req, res) => {
             a=a+1
         }
 
+        const userAllOrders = await orders.find({$and: [
+            {userid: req.params.id}, 
+            {billingstatus: {$ne: "On Hold"}}
+        ]})
+
         const obj = {
             sortedOrders: userOrder,
             totalOrders: a,
-            total: userOrders.length
+            total: userOrders.length,
+            allOrders: userAllOrders
         }
         res.status(200).send(obj)
     } catch (err) {

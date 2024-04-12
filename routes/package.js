@@ -57,7 +57,7 @@ router.post("/create-package", upload.fields([{ name: 'displayimage', maxCount: 
                 const imageResize = await sharp(req.files.displayimage[i]?.buffer)
                 .resize({width: 800, height: 800, fit: sharp.fit.cover,})
                 .toFormat('webp')
-                .webp({ quality: 80 })
+                .webp({lossless:true, quality: 100 })
                 .toBuffer()
 
                 const uploadParams = {
@@ -140,7 +140,7 @@ router.post("/update-package", upload.fields([{ name: 'displayimage', maxCount: 
                 obj.displayimage = uploadParams?.Key
             }
         } 
-        let moreImageList = JSON.parse(req.body.collection)
+        let moreImageList = req.body.collection ? JSON.parse(req.body.collection) : []
         if (req.files?.moreimage?.length>0) {
             let uploadedMoreImage = req.files?.moreimage
             if (uploadedMoreImage?.length>0) {
