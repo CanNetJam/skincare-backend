@@ -207,13 +207,7 @@ router.post("/generate-vouchers", auth, async (req, res) => {
                         </div>
                         <div style="display: none;">[${Date.now()}] End of message.</div>
                     </div>
-                    `, // Embedded image links to content ID
-                    // attachments: [{
-                    // filename: 'logo.png',
-                    // path: './src/logo.png',
-                    // cid: 'kluedlogo@kluedskincare.com' // Sets content ID
-                    // }]
-                    
+                    `, 
                 })
                 await emails.findOneAndUpdate({email: maillist[i]}, {sentAt: Date.now()})
             //}

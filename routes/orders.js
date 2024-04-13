@@ -567,14 +567,23 @@ router.get("/:id/:deliverystatus", auth, async (req, res) => {
 
         const userAllOrders = await orders.find({$and: [
             {userid: req.params.id}, 
-            {billingstatus: {$ne: "On Hold"}}
+            {billingstatus: {$ne: "On Hold"}},
+            {deliverystatus: "Delivered"}
         ]})
+        let toReview = false
+        for (let i=0; i<userAllOrders.length; i++){
+            for (let n=0; n<userAllOrders[i].items.length; n++) {
+                if (userAllOrders[i].items[n].reviewed===false) {
+                    toReview = true
+                }
+            }
+        }
 
         const obj = {
             sortedOrders: userOrder,
             totalOrders: a,
             total: userOrders.length,
-            allOrders: userAllOrders
+            toReview: toReview
         }
         res.status(200).send(obj)
     } catch (err) {
