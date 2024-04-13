@@ -207,8 +207,39 @@ router.post("/create-product", upload.fields([{ name: 'displayimage', maxCount: 
     
 })
 
-router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 1 }, { name: 'moreimage', maxCount: 3 }, { name: 'ingphoto', maxCount: 100 }, { name: 'prodvid', maxCount: 10 }]), async (req, res) => {
+router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 1 }, { name: 'moreimage', maxCount: 3 }, { name: 'ingphoto', maxCount: 100 }, { name: 'prodvid', maxCount: 10 }, { name: 'featuredvideos', maxCount: 10 }]), async (req, res) => {
     try {
+        let videoList = req.body?.videocollection ? JSON.parse(req.body?.videocollection) : []
+        if (videoList?.length>0) {
+            let uploadedMoreVid = req.files?.featuredvideos
+            if (uploadedMoreVid?.length>0) {
+                let filecount = 0
+                for (let n=0; n<videoList.length; n++) {
+                    if (videoList[n]?.video==="file") {
+                        const uploadParams = {
+                            Bucket: process.env.BUCKET_NAME,
+                            Key: crypto.pbkdf2Sync(uploadedMoreVid[filecount].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + path.extname(uploadedMoreVid[filecount].originalname),
+                            Body: uploadedMoreVid[filecount]?.buffer,
+                            ContentType: uploadedMoreVid[filecount]?.mimetype
+                        }
+                        videoList[n] = {
+                            title: videoList[n].title,
+                            description: videoList[n].description,
+                            video: {
+                                urlKey: uploadParams?.Key,
+                                type: "file",
+                            }
+                        }
+                        const uploadVideo = new PutObjectCommand(uploadParams)
+                        await s3.send(uploadVideo)
+                        filecount+=1
+                    } else {
+                        videoList[n] = videoList[n]
+                    }
+                }
+            }
+        }
+
         let ingList = req.body?.ingphotos ? JSON.parse(req.body?.ingphotos) : []
         if (req.files?.ingphoto?.length>0) {
             let uploadedMoreIng = req.files.ingphoto
@@ -259,6 +290,7 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
             do: JSON.parse(req.body.do),
             dont: JSON.parse(req.body.dont),
             routines: JSON.parse(req.body.routines),
+            featuredvideos: req.body.videocollection ? videoList : [],
             relatedproducts: JSON.parse(req.body.relatedproducts)
         }
         if (req.files?.displayimage){
@@ -368,6 +400,27 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                     const command = new DeleteObjectCommand({
                         Bucket: process.env.BUCKET_NAME,
                         Key: info.videos[i],
+                    })
+                    await s3.send(command)
+                }
+            }
+        }
+        if (info?.featuredvideos?.length>0) {
+            for (let i=0; i<info.featuredvideos.length; i++) {
+                let dupe = false
+                async function findDupe() {
+                    for (let n=0; n<obj.featuredvideos.length; n++) {
+                        if (info.featuredvideos[i]?.video?.urlKey===obj.featuredvideos[n]?.video?.urlKey && info.featuredvideos[i]?.video?.type==="file") {
+                            dupe = true
+                            return 
+                        } 
+                    }
+                }
+                findDupe()
+                if (dupe===false && info.featuredvideos[i]?.video.type==="file") {
+                    const command = new DeleteObjectCommand({
+                        Bucket: process.env.BUCKET_NAME,
+                        Key: info.featuredvideos[i]?.video.urlKey,
                     })
                     await s3.send(command)
                 }
