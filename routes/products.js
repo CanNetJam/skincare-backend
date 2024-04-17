@@ -412,7 +412,7 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                 }
             } else {
                 for(let i = 0; i<ingList.length; i++){
-                    if (info.ingredients[i].photo!==ingList[i].photo && info.ingredients[i]!==undefined) {
+                    if (info?.ingredients[i].photo!==ingList[i].photo && info.ingredients[i]!==undefined && info.ingredients[i].photo!==undefined) {
                         const command = new DeleteObjectCommand({
                             Bucket: process.env.BUCKET_NAME,
                             Key: info.ingredients[i].photo,

@@ -169,7 +169,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                     const toSendEmail = await orders.findById(ourData._id)
                     .populate({path:"items.item", select:["name", "displayimage", "price", "origprice"]})
 
-                    let maillist = ['welcome@kluedskincare.com']  
+                    let maillist = ['support@kluedskincare.com']  
                     let transporter = nodemailer.createTransport({
                         host: "smtpout.secureserver.net", 
                         port: 465, 
