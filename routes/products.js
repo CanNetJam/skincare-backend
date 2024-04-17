@@ -239,7 +239,6 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                 }
             }
         }
-
         let ingList = req.body?.ingphotos ? JSON.parse(req.body?.ingphotos) : []
         if (req.files?.ingphoto?.length>0) {
             let uploadedMoreIng = req.files.ingphoto
@@ -342,7 +341,10 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
             } else {
                 obj.moreimage = moreImageList
             }
+        } else {
+            obj.moreimage = moreImageList
         }
+
         if (req.files?.prodvid){
             for (let i=0; i<req.files.prodvid.length; i++) {
                 const uploadParams = {
@@ -355,6 +357,8 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                 await s3.send(videoPhoto)
                 obj.videos = uploadParams?.Key
             }
+        } else {
+            obj.videos = JSON.parse(req.body.prodvid)
         }
 
         const info = await product.findByIdAndUpdate({ _id: new ObjectId(req.body._id) }, {$set: obj})
@@ -372,14 +376,26 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                 await s3.send(command)
             }
         }
-        if (req.files?.moreimage) {
-            for (let i = 0; i<moreImageList.length; i++){
-                if (moreImageList[i]!==info.moreimage[i] && info.moreimage.length>0 && info.moreimage[i]!==undefined) {
-                    const command = new DeleteObjectCommand({
-                        Bucket: process.env.BUCKET_NAME,
-                        Key: info.moreimage[i],
-                    })
-                    await s3.send(command)
+        if (info.moreimage?.length>0) {
+            if (info.moreimage?.length>moreImageList.length) {
+                for (let i = 0; i<info.moreimage.length; i++){
+                    if (moreImageList[i]!==info.moreimage[i]) {
+                        const command = new DeleteObjectCommand({
+                            Bucket: process.env.BUCKET_NAME,
+                            Key: info.moreimage[i],
+                        })
+                        await s3.send(command)
+                    }
+                }
+            } else {
+                for (let i = 0; i<moreImageList.length; i++){
+                    if (moreImageList[i]!==info.moreimage[i] && info.moreimage[i]!==undefined) {
+                        const command = new DeleteObjectCommand({
+                            Bucket: process.env.BUCKET_NAME,
+                            Key: info.moreimage[i],
+                        })
+                        await s3.send(command)
+                    }
                 }
             }
         }
