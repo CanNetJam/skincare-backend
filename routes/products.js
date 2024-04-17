@@ -400,13 +400,25 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
             }
         }
         if (info.ingredients.length>0) {
-            for(let i = 0; i<info.ingredients.length; i++){
-                if (info.ingredients[i].photo!==ingList[i].photo) {
-                    const command = new DeleteObjectCommand({
-                        Bucket: process.env.BUCKET_NAME,
-                        Key: info.ingredients[i].photo,
-                    })
-                    await s3.send(command)
+            if (info.ingredients.length>ingList.length) {
+                for(let i = 0; i<info.ingredients.length; i++){
+                    if (info.ingredients[i].photo!==ingList[i].photo) {
+                        const command = new DeleteObjectCommand({
+                            Bucket: process.env.BUCKET_NAME,
+                            Key: info.ingredients[i].photo,
+                        })
+                        await s3.send(command)
+                    }
+                }
+            } else {
+                for(let i = 0; i<ingList.length; i++){
+                    if (info.ingredients[i].photo!==ingList[i].photo && info.ingredients[i]!==undefined) {
+                        const command = new DeleteObjectCommand({
+                            Bucket: process.env.BUCKET_NAME,
+                            Key: info.ingredients[i].photo,
+                        })
+                        await s3.send(command)
+                    }
                 }
             }
         }
