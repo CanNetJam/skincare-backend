@@ -160,9 +160,9 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                     await orders.deleteMany({userid: ourData.userid, billingstatus: "On Hold"})
                     ourData.items.map( async (a)=> {
                         if (a.type==="package") {
-                            await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity}})
+                            await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: 1}})
                         } else if (a.type==="single") {
-                            await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity}})
+                            await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: 1}})
                         }
                     })
 
@@ -322,9 +322,9 @@ router.post("/checkout_webhook", async (req, res) => {
             await orders.deleteMany({ billingstatus: "On Hold"})
             ourData.items.map( async (a)=> {
                 if (a.type==="package") {
-                    await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity}})
+                    await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: 1}})
                 } else if (a.type==="single") {
-                    await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity}})
+                    await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: 1}})
                 }
             })
 

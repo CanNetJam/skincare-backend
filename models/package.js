@@ -23,7 +23,10 @@ const packageSchema = new mongoose.Schema({
     },
     items: [ 
         { type: mongoose.Schema.Types.ObjectId, ref: "product"},
-    ]
+    ],
+    sold: {
+        type: Number,
+    },
 }, { timestamps: true })
 
 module.exports= mongoose.model("package", packageSchema)

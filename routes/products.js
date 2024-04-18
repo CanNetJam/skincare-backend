@@ -358,7 +358,7 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                 obj.videos = uploadParams?.Key
             }
         } else {
-            obj.videos = JSON.parse(req.body.prodvid)
+            obj.videos = req.body.prodvid
         }
 
         const info = await product.findByIdAndUpdate({ _id: new ObjectId(req.body._id) }, {$set: obj})
