@@ -16,8 +16,8 @@ const vouchersRoute = require ('./routes/vouchers');
 const videosRoute = require ('./routes/videos');
 const reportsRoute = require ('./routes/reports');
 
-//mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
-mongoose.connect(process.env.CONNECTIONSTRING , {
+mongoose.connect("mongodb://0.0.0.0:27017/kluedskincare", {
+//mongoose.connect(process.env.CONNECTIONSTRING , {
 })
 
 const app = express();
