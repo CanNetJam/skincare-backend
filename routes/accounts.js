@@ -840,7 +840,7 @@ router.post("/update-add-cart/:id", auth, async (req, res) => {
     try {
         const obj = {
             type: req.body.type,
-            product: req.body.product._id,
+            product: req.body?.product?._id || req.body?.pack?._id,
             quantity: req.body.quantity
         }
         const info = await accounts.findById(req.params.id)

@@ -96,7 +96,6 @@ router.get("/top-products",  async (req, res) => {
             let match = false
             let toChange = 0
             for (let n=0; n<allProducts[i].items.length; n++) {
-
                 if (topProducts.length===0) {
                     topProducts.push(allProducts[i].items[n])
                 } else {
@@ -124,8 +123,8 @@ router.get("/top-products",  async (req, res) => {
                     }
                 }
             }
-
         }
+        console.log(topProducts)
 
         let sortedTopProducts = []
         function recursiveSort (props){

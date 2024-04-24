@@ -151,7 +151,7 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                 }
                 const ourData = await orders.findByIdAndUpdate({_id: addOrder._id}, {
                     billingstatus: "COD", 
-                    netamount: addOrder.amountpaid,
+                    netamount: addOrder.amountpaid-addOrder.shippingfee,
                     transactionfee: 0.00,
                 })
 
