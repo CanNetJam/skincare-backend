@@ -49,7 +49,7 @@ router.get("/all-orders",  async (req, res) => {
         ]})
         const allPreviousVouchers = await vouchers.find({$and: [
             {status: "Used"},
-            {updatedAt: {$gte: req.query.start, $lt: req.query.end}},
+            {updatedAt: {$gte: req.query.previous, $lt: req.query.start}},
         ]})
 
         const obj = {

@@ -160,9 +160,9 @@ router.post("/submit-order/:id", auth, async (req, res) => {
                     await orders.deleteMany({userid: ourData.userid, billingstatus: "On Hold"})
                     ourData.items.map( async (a)=> {
                         if (a.type==="package") {
-                            await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: 1}})
+                            await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: a.quantity}})
                         } else if (a.type==="single") {
-                            await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: 1}})
+                            await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: a.quantity}})
                         }
                     })
 
@@ -322,9 +322,9 @@ router.post("/checkout_webhook", async (req, res) => {
             await orders.deleteMany({ billingstatus: "On Hold"})
             ourData.items.map( async (a)=> {
                 if (a.type==="package") {
-                    await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: 1}})
+                    await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: a.quantity}})
                 } else if (a.type==="single") {
-                    await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: 1}})
+                    await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: a.quantity}})
                 }
             })
 
@@ -467,9 +467,9 @@ router.post("/checkout_webhook", async (req, res) => {
         if (ourData){
             ourData.items.map( async (a)=> {
                 if (a.type==="package") {
-                    await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                    await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity, sold: -a.quantity}})
                 } else if (a.type==="single") {
-                    await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                    await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity, sold: -a.quantity}})
                 }
             }) 
         }
@@ -523,9 +523,9 @@ router.post("/cancel-order/:id", auth, async (req, res) => {
             if (ourData){
                 ourData.items.map( async (a)=> {
                     if (a.type==="package") {
-                        await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                        await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity, sold: -a.quantity}})
                     } else if (a.type==="single") {
-                        await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                        await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity, sold: -a.quantity}})
                     }
                 }) 
             }
@@ -688,9 +688,9 @@ router.post("/update-order/:id", auth, async (req, res) => {
                 if (ourData){
                     ourData.items.map( async (a)=> {
                         if (a.type==="package") {
-                            await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                            await package.findByIdAndUpdate({_id: a.item}, {$inc: {stock: -a.quantity, sold: -a.quantity}})
                         } else if (a.type==="single") {
-                            await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity}})
+                            await product.findByIdAndUpdate({_id: a.item}, {$inc: {stock: a.quantity, sold: -a.quantity}})
                         }
                     }) 
                 }
@@ -698,10 +698,258 @@ router.post("/update-order/:id", auth, async (req, res) => {
             }
         } else if (req.body.status==="Delivered") {
             if (req.body.paymentoption!=="COD"){
-                await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status, deliveredat: Date.now()})
+                const order = await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status, deliveredat: Date.now()})
+                .populate({path:"items.item", select:["name", "displayimage"]})
+                
+                let maillist = [order.email]  
+                let transporter = nodemailer.createTransport({
+                    host: "smtpout.secureserver.net", 
+                    port: 465, 
+                    secure: true, 
+                    auth: {
+                        user: "welcome@kluedskincare.com", 
+                        pass: process.env.EMAIL_PASS, 
+                    },
+                    tls : { rejectUnauthorized: false }
+                })
+        
+                await transporter.sendMail({
+                    from: '"Klued" <welcome@kluedskincare.com>',
+                    to: maillist[0],
+                    cc: '',
+                    subject: `Klued Order Delivered!`,
+                    html: `
+                    <div style="font-family: Century Gothic, sans-serif;" width="100%">
+                        <div style="Margin:0 auto; max-width:750px;">
+                            <div style="display: none;">Your order <b>${order._id}</b> at Klued is now delivered. Log in to your account and review it immediately to recieve up to ₱10.00 pesos off voucher.</div>
+                            <div width="100%" style="display:flex; justify-content:center;">
+                                <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="150" height="75"/></a>
+                            </div>
+                            <br/>
+                            <p style="font-size: 26px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px; text-align:center"><b>Klued Website Order</b></p>
+                            <div style="font-size: 16px; width:100%">
+                                Hello ${order.owner},
+                                <br/>
+                                <p style="text-align: justify;">
+                                    Your order <b>${order._id}</b> at Klued website is now delivered. Log in to your account and review it immediately to recieve up to <b>₱10.00 pesos off voucher</b>. Head on to <a href="https://kluedskincare.com/login">https://kluedskincare.com/login</a> to log in immediately.
+                                </p>
+                                <br/>
+                                <div>
+                                    Order Id: ${order._id}<br/>
+                                    Order date: ${moment(order.createdAt).format('MMMM Do YYYY, hh:mm A')} <br/>
+                                    Customer name: ${order.owner}
+                                </div>
+                                <br/>
+                                <br/>
+                                <b>Order Items:</b>
+                                <br/>
+                                <div style="width: 100%; border: solid 1px;"></div>
+                                <br/>
+                                <div style="width:100%;">
+                                    <table style="Margin:0 auto;width:auto;padding:8px;">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    No.
+                                                </th>
+                                                <th>
+                                                    Item
+                                                </th>
+                                                <th>
+                                                    Price
+                                                </th>
+                                                <th>
+                                                    Quantity
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${
+                                                order.items.map((a, index)=> {
+                                                    return (
+                                                        `<tr>
+                                                            <td style='text-align: center; padding-left: 16px; padding-right: 16px;'>
+                                                                ${index+1}
+                                                            </td>
+                                                            <td style='text-align: center; display: flex; gap: 4px; align-items: center; padding-left: 16px; padding-right: 16px;'>
+                                                                <img style="height: 100px; width: 150px;" src=${`https://klued-uploads.s3.ap-southeast-1.amazonaws.com/${a.item?.displayimage}`}></img>
+                                                                <p style="height:100%; align-items: center;">${a.item.name}</p>
+                                                            </td>
+                                                            <td style='text-align: center; padding-left: 16px; padding-right: 16px;'>
+                                                                ₱${a.price?.toFixed(2)}
+                                                            </td>
+                                                            <td style='text-align: center; padding-left: 16px; padding-right: 16px;'>
+                                                                ${a.quantity}
+                                                            </td>
+                                                        </tr>`
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <br/>
+                                <div style="width: 100%; border: solid 1px;"></div>
+                                <br/>
+                                <div>
+                                    Subtotal: ₱${order.amounttotal?.toFixed(2)}<br/>
+                                    Shipping fee: ₱${order.shippingfee?.toFixed(2)}<br/>
+                                    <b>Total Payment: ₱${order.amountpaid?.toFixed(2)}</b><br/>
+                                </div>
+                                <br/>
+                                <br/>
+                                <div style="font-size: 14px; width:100%; text-align:center;"><i>This is a system-generated email, please do not reply to this message.</i></div>
+                            </div>
+                            <br/>
+                            <br/>
+                            <div style="background-color:#1e293b; color:#94a3b8; padding-left: 25px;padding-right: 25px; padding-top: 15px;padding-bottom: 15px;">
+                                <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="100" height="45"/></a>
+                                <p>
+                                    "Combining knowledge and passion to the skin"
+                                </p>
+                                <br/>
+                                <p style="font-size: 14px;">
+                                    📍Address: 2nd Floor WANJ Bldg.<br/>
+                                    Don Placido Campos Ave. Brgy. San Jose<br/>
+                                    Dasmarinas, Cavite 4114<br/>
+                                    📞 Mobile:09176680429<br/>
+                                    💻 Website: https://kluedskincare.com
+                                </p>
+                                <p style="Margin:0 auto; width:auto;">© 2024 Klued. All rights reserved.</p>
+                            </div>
+                        </div>
+                        <div style="display: none;">[${Date.now()}] End of message.</div>
+                    </div>
+                    `,
+                })
+
                 res.status(200).send(true)
             } else if (req.body.paymentoption==="COD") {
-                await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status, billingstatus: "Paid", paidat: Date.now(), deliveredat: Date.now()})
+                const order = await orders.findByIdAndUpdate({_id: req.params.id}, {trackingnumber: req.body.tracking, deliverystatus: req.body.status, billingstatus: "Paid", paidat: Date.now(), deliveredat: Date.now()})
+                .populate({path:"items.item", select:["name", "displayimage"]})
+
+                let maillist = [order.email]  
+                let transporter = nodemailer.createTransport({
+                    host: "smtpout.secureserver.net", 
+                    port: 465, 
+                    secure: true, 
+                    auth: {
+                        user: "welcome@kluedskincare.com", 
+                        pass: process.env.EMAIL_PASS, 
+                    },
+                    tls : { rejectUnauthorized: false }
+                })
+        
+                await transporter.sendMail({
+                    from: '"Klued" <welcome@kluedskincare.com>',
+                    to: maillist[0],
+                    cc: '',
+                    subject: `Klued Order Delivered!`,
+                    html: `
+                    <div style="font-family: Century Gothic, sans-serif;" width="100%">
+                        <div style="Margin:0 auto; max-width:750px;">
+                            <div style="display: none;">Your order <b>${order._id}</b> at Klued is now delivered. Log in to your account and review it immediately to recieve up to ₱10.00 pesos off voucher.</div>
+                            <div width="100%" style="display:flex; justify-content:center;">
+                                <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="150" height="75"/></a>
+                            </div>
+                            <br/>
+                            <p style="font-size: 26px; color:#ffffff; background-color:#3b82f6; padding-top: 15px;padding-bottom: 15px; text-align:center"><b>Klued Website Order</b></p>
+                            <div style="font-size: 16px; width:100%">
+                                Hello ${order.owner},
+                                <br/>
+                                <p style="text-align: justify;">
+                                    Your order <b>${order._id}</b> at Klued website is now delivered. Log in to your account and review it immediately to recieve up to <b>₱10.00 pesos off voucher</b>. Head on to <a href="https://kluedskincare.com/login">https://kluedskincare.com/login</a> to log in immediately.
+                                </p>
+                                <br/>
+                                <div>
+                                    Order Id: ${order._id}<br/>
+                                    Order date: ${moment(order.createdAt).format('MMMM Do YYYY, hh:mm A')} <br/>
+                                    Customer name: ${order.owner}
+                                </div>
+                                <br/>
+                                <br/>
+                                <b>Order Items:</b>
+                                <br/>
+                                <div style="width: 100%; border: solid 1px;"></div>
+                                <br/>
+                                <div style="width:100%;">
+                                    <table style="Margin:0 auto;width:auto;padding:8px;">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                    No.
+                                                </th>
+                                                <th>
+                                                    Item
+                                                </th>
+                                                <th>
+                                                    Price
+                                                </th>
+                                                <th>
+                                                    Quantity
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${
+                                                order.items.map((a, index)=> {
+                                                    return (
+                                                        `<tr>
+                                                            <td style='text-align: center; padding-left: 16px; padding-right: 16px;'>
+                                                                ${index+1}
+                                                            </td>
+                                                            <td style='text-align: center; display: flex; gap: 4px; align-items: center; padding-left: 16px; padding-right: 16px;'>
+                                                                <img style="height: 100px; width: 150px;" src=${`https://klued-uploads.s3.ap-southeast-1.amazonaws.com/${a.item?.displayimage}`}></img>
+                                                                <p style="height:100%; align-items: center;">${a.item.name}</p>
+                                                            </td>
+                                                            <td style='text-align: center; padding-left: 16px; padding-right: 16px;'>
+                                                                ₱${a.price?.toFixed(2)}
+                                                            </td>
+                                                            <td style='text-align: center; padding-left: 16px; padding-right: 16px;'>
+                                                                ${a.quantity}
+                                                            </td>
+                                                        </tr>`
+                                                    )
+                                                })
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <br/>
+                                <div style="width: 100%; border: solid 1px;"></div>
+                                <br/>
+                                <div>
+                                    Subtotal: ₱${order.amounttotal?.toFixed(2)}<br/>
+                                    Shipping fee: ₱${order.shippingfee?.toFixed(2)}<br/>
+                                    <b>Total Payment: ₱${order.amountpaid?.toFixed(2)}</b><br/>
+                                </div>
+                                <br/>
+                                <br/>
+                                <div style="font-size: 14px; width:100%; text-align:center;"><i>This is a system-generated email, please do not reply to this message.</i></div>
+                            </div>
+                            <br/>
+                            <br/>
+                            <div style="background-color:#1e293b; color:#94a3b8; padding-left: 25px;padding-right: 25px; padding-top: 15px;padding-bottom: 15px;">
+                                <a style="Margin:0 auto; width:200px; object-fit:cover;" href="https://kluedskincare.com/"><img style="Margin:0 auto;" src="http://drive.google.com/uc?export=view&id=1205FRbwJYWvOPDeWGRRl98TKKtNdi13j" alt="Logo" title="Klued Logo" width="100" height="45"/></a>
+                                <p>
+                                    "Combining knowledge and passion to the skin"
+                                </p>
+                                <br/>
+                                <p style="font-size: 14px;">
+                                    📍Address: 2nd Floor WANJ Bldg.<br/>
+                                    Don Placido Campos Ave. Brgy. San Jose<br/>
+                                    Dasmarinas, Cavite 4114<br/>
+                                    📞 Mobile:09176680429<br/>
+                                    💻 Website: https://kluedskincare.com
+                                </p>
+                                <p style="Margin:0 auto; width:auto;">© 2024 Klued. All rights reserved.</p>
+                            </div>
+                        </div>
+                        <div style="display: none;">[${Date.now()}] End of message.</div>
+                    </div>
+                    `,
+                })
+                
                 res.status(200).send(true)
             }
         } else {
