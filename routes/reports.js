@@ -124,7 +124,6 @@ router.get("/top-products",  async (req, res) => {
                 }
             }
         }
-        console.log(topProducts)
 
         let sortedTopProducts = []
         function recursiveSort (props){
@@ -247,7 +246,7 @@ router.get("/all-monthly-sales",  async (req, res) => {
             //const filteredOrders = allOrders.filter((a)=>i.toString()===moment(a.createdAt).format('M') && moment(a.createdAt).format('YYYY')===moment(req.query.start).format('YYYY'))
             let sum1 = 0
             for (let n=0; n<filteredOrders.length; n++){
-                sum1 = sum1 + filteredOrders[n].amountpaid
+                sum1 = sum1 + filteredOrders[n].amountpaid 
             }
             let sum2 = 0
             for (let n=0; n<filteredOrders.length; n++){
@@ -268,7 +267,7 @@ router.get("/all-monthly-sales",  async (req, res) => {
         ])
         let totalSales = 0
         for (let n=0; n<filteredOrders.length; n++){
-            totalSales = totalSales + filteredOrders[n].amountpaid
+            totalSales = totalSales + filteredOrders[n].netamount
         }
         let TotalDelivery = 0
         for (let n=0; n<filteredOrders.length; n++){

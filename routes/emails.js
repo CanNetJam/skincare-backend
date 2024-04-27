@@ -185,7 +185,6 @@ router.post("/verify-email/:id/:uniqueString", async (req, res) => {
                 res.status(200).json("Link expired! Verification links only last for 3 days. Register again to continue.")
             } else {
                 const uniqueCode = await bcrypt.compare(req.params.uniqueString, findVerification[0].encryptedstring)
-                console.log(req.params.id)
                 if (uniqueCode) {
                     const verifyAccount = await accounts.findByIdAndUpdate({ _id: new ObjectId(req.params.id) }, {verified: true})
                     if (verifyAccount) {
