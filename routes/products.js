@@ -94,26 +94,27 @@ router.post("/create-product", upload.fields([{ name: 'displayimage', maxCount: 
 
         let newIngredients = req.body.ingredients ? JSON.parse(req.body.ingredients) : []
         if (req.files?.ingphoto){
-            newIngredients = newIngredients.map((a, index)=> {
-                async function uploadImage() {
-                    const imageResize = await sharp(req.files.ingphoto[index]?.buffer)
-                    .resize({width: 500, height: 500, fit: sharp.fit.cover,})
-                    .toFormat('webp')
-                    .webp({ quality: 50 })
-                    .toBuffer()
-        
-                    const uploadParams = {
-                        Bucket: process.env.BUCKET_NAME,
-                        Key: crypto.pbkdf2Sync(req.files.ingphoto[index].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
-                        Body: imageResize,
-                        ContentType: req.files.ingphoto[index]?.mimetype
-                    }
-                    const uploadPhoto = new PutObjectCommand(uploadParams)
-                    await s3.send(uploadPhoto)
+            for (let i=0; i<newIngredients.length; i++) {
+                const imageResize = await sharp(req.files.ingphoto[i]?.buffer)
+                .resize({width: 500, height: 500, fit: sharp.fit.cover,})
+                .toFormat('webp')
+                .webp({ quality: 50 })
+                .toBuffer()
+    
+                const uploadParams = {
+                    Bucket: process.env.BUCKET_NAME,
+                    Key: crypto.pbkdf2Sync(req.files.ingphoto[i].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp",
+                    Body: imageResize,
+                    ContentType: req.files.ingphoto[i]?.mimetype
                 }
-                uploadImage()
-                return {...a, photo: crypto.pbkdf2Sync(req.files.ingphoto[index].originalname+Date.now(), 'f844b09ff50c', 1000, 16, `sha512`).toString(`hex`) + ".webp"}
-            })
+                const uploadPhoto = new PutObjectCommand(uploadParams)
+                await s3.send(uploadPhoto)
+                newIngredients[i] = {
+                    name: newIngredients[i].name,
+                    desc: newIngredients[i].desc,
+                    photo: uploadParams.Key
+                }
+            }
         }
 
         const obj = {
@@ -344,7 +345,7 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
         } else {
             obj.moreimage = moreImageList
         }
-
+        
         if (req.files?.prodvid){
             for (let i=0; i<req.files.prodvid.length; i++) {
                 const uploadParams = {
@@ -358,7 +359,8 @@ router.post("/update-product", upload.fields([{ name: 'displayimage', maxCount: 
                 obj.videos = uploadParams?.Key
             }
         } else {
-            obj.videos = req.body.prodvid
+            if (typeof req.body.prodvid!=='empty') obj.videos = req.body.prodvid
+            else obj.videos = []
         }
 
         const info = await product.findByIdAndUpdate({ _id: new ObjectId(req.body._id) }, {$set: obj})
